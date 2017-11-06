@@ -6,6 +6,9 @@
 
 - More cool things can be done with larger data sets
 - There are lot of data sets that could be combined
+    - TCGA
+    - LINCS
+    - etc.
 - Even when the exact same features are collected by multiple studies, problems come from combining data from multiple sources
     - Slightly different collection methods / instruments can lead to bias in the data
     - etc.
@@ -19,6 +22,7 @@
             - The data with the confounding classes removed
             - Everything that was removed by the autoencoder
         - [Similar paper](https://arxiv.org/pdf/1705.08821.pdf) - what would we do differently?
+            - It seems like they're more focused on removing hidden effects... I need to read this carefully & figure this out.
     - Create a software package (maybe using Docker) so people can remove confounding effects from their own data
     - Integrate this into [Geney](https://github.com/srp33/Geney)
 - We will test our methods
