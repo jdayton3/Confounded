@@ -6,5 +6,9 @@
         "microarray",
         "proteomic",
         "upregulated"
-    ]
+    ],
+    "[markdown]": {
+        "editor.wordWrap": "bounded",
+        "editor.quickSuggestions": false
+    }
 }
