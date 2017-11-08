@@ -2,6 +2,14 @@
 
 ##### Name possibly subject to change...
 
+## Paragraphs for proposal
+
+When working with biological data, problems can arise from combining data from multiple sources. If two separate researchers generate the same type of data with all the same variables for a particular observation, subtle differences in collection methods can lead to bias in the data, which can confound attempts at accurate analysis when combining the data from both researchers.  This bias can be even more pronounced when using data collected with from different tissue types and can skew results, such as in pan-cancer analyses.  However, recent advances in neural networks have made it possible to eliminate these class-specific confounding effects.
+
+Neural networks are a tool for machine learning in which input values pass through layers of linear and nonlinear functions. The values that are output by neural networks are measured with objective functions, and the layers of functions are adjusted to bring the outputs closer to the objectives.  This process is repeated until the outputs are sufficiently close to their targets.  Autoencoders are a type of neural network that encode and then reconstruct their input, and their traditional objective function is to construct the output as close to the input as possible.  
+
+Neural networks have historically had decreased effectiveness when working with data from multiple domains, in part because they may easily learn to distinguish between classes (e.g. which researcher collected the data) but then fail to discern more biologically interesting information (e.g. which gene is consistently upregulated in a disease).  Our proposed project is to use neural networks to remove confounding effects from multi-class data sets by creating an autoencoder that takes input with multiple known classes and adjusts the data.  This autoencoder will have two objective functions:  1. to reconstruct input as faithfully as possible and 2. to remove any class-specific patterns from the data.  This type of dual objective function [has been used](https://arxiv.org/pdf/1412.3474v1.pdf) to allow a neural network to learn meaningful representations in data while ignoring differences caused by class groupings and [has also been used](https://arxiv.org/pdf/1511.00830.pdf) in conjunction with autoencoders.  Our approach would build on previous research by using an autoencoder with this dual objective function to remove confounding effects from multi-class data sets and to output the adjusted data for further analysis.  We will package our software to allow other researchers to remove confounding effects from their own data.
+
 ## Abstract
 
 - More cool things can be done with larger data sets
@@ -30,13 +38,6 @@
     - Combining microarray and RNA-Seq data sets
     - Removing tissue signal from pan-cancer data
 
-### Paragraphs for proposal
-
-When working with biological data, problems can arise from combining data from multiple sources. If two separate researchers generate the same type of data with all the same variables for a particular observation, subtle differences in collection methods can lead to bias in the data, which can confound attempts at accurate analysis when combining the data from both researchers.  This bias can be even more pronounced when using data collected with from different tissue types and can skew results, such as in pan-cancer analyses.  However, recent advances in neural networks have made it possible to eliminate these class-specific confounding effects.
-
-Neural networks are a tool for machine learning in which input values pass through layers of linear and nonlinear functions. The values that are output by neural networks are measured with objective functions, and the layers of functions are adjusted to bring the outputs closer to the objectives.  This process is repeated until the outputs are sufficiently close to their targets.  Autoencoders are a type of neural network that encode and then reconstruct their input, and their traditional objective function is to construct the output as close to the input as possible.  
-
-Neural networks have historically had decreased effectiveness when working with data from multiple domains, in part because they may easily learn to distinguish between classes (e.g. which researcher collected the data) but then fail to discern more biologically interesting information (e.g. which gene is consistently upregulated in a disease).  Our proposed project is to use neural networks to remove confounding effects from multi-class data sets by creating an autoencoder that takes input with multiple known classes and adjusts the data.  This autoencoder will have two objective functions:  1. to reconstruct input as faithfully as possible and 2. to remove any class-specific patterns from the data.  This type of dual objective function [has been used](https://arxiv.org/pdf/1412.3474v1.pdf) to allow a neural network to learn meaningful representations in data while ignoring differences caused by class groupings and [has also been used](https://arxiv.org/pdf/1511.00830.pdf) in conjunction with autoencoders.  Our approach would build on previous research by using an autoencoder with this dual objective function to remove confounding effects from multi-class data sets and to output the adjusted data for further analysis.  We will package our software to allow other researchers to remove confounding effects from their own data.
 
 ### Previous research:
 
