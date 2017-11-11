@@ -57,9 +57,27 @@ Neural networks are a tool modeled loosely after how the human brain learns; inp
 
 ## Materials & Methods
 
-> - Material / Method
->     - What is it?
->     - Why is it good for what we're doing?
+### We'll develop using the Python TensorFlow library and "deploy" using Docker
+
+- Tensorflow
+    - Wide use in Deep Learning community--76,000 stars and 37,000 watchers on [GitHub](https://github.com/tensorflow/tensorflow), which is much more than [Keras](https://github.com/fchollet/keras), [Theano](https://github.com/Theano/Theano), [Lasagne](https://github.com/Lasagne/Lasagne), [Caffe](https://github.com/BVLC/caffe), and [Torch](https://github.com/torch/torch7).
+    - [Developed by Google](https://www.tensorflow.org/) - associated with a big, stable company.  Probably will be around for a long time.
+    - Abstracts away the really low-level stuff like backpropagation, but allows access to important low-level stuff that needs tweaked
+        - Graph structures
+        - Loss functions
+    - Fast.
+        - For development
+            - Write in Python (high-level programming language)
+            - Great built-in visualization library, which makes for easier debugging
+        - For running
+            - Once the graph is created, it runs in C++ / CUDA, which is important because Deep Learning algorithms are very computationally intensive
+- Docker
+    - Easier for other scientists to download and run because the container will have dependencies built in
+        - Working with GPUs is possible but takes more steps to [get it set up](https://medium.com/@gooshan/for-those-who-had-trouble-in-past-months-of-getting-google-s-tensorflow-to-work-inside-a-docker-9ec7a4df945b)
+    - Multi-platform
+        - Easier development, can focus on features instead of on developing multiple code bases for multiple operating systems
+    - Containerization means it won't clash with other programs 
+    - The rest of Geney's services also run in Docker (?) so we can keep it running with a smaller team (I think this is a good reason to use Docker, but grant people may not think so)
 
 ## Results
 
