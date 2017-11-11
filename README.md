@@ -44,6 +44,7 @@ Neural networks are a tool modeled loosely after how the human brain learns; inp
     - How their research supports our concept (deep learning is the right approach because other people have used deep learning)
     - How their research fell short 
     - How our research will overcome their shortcomings
+
 - [Deep Domain Confusion: Maximizing for Domain Invariance](https://arxiv.org/abs/1412.3474v1)
     - ...
 - [Causal Effect Inference with Deep Latent-Variable Models](https://arxiv.org/pdf/1705.08821.pdf)
@@ -55,6 +56,10 @@ Neural networks are a tool modeled loosely after how the human brain learns; inp
 ## Introduction
 
 ## Materials & Methods
+
+> - Material / Method
+>     - What is it?
+>     - Why is it good for what we're doing?
 
 ## Results
 
