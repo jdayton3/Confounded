@@ -50,11 +50,15 @@ Neural networks are a tool modeled loosely after how the human brain learns; inp
 - [Causal Effect Inference with Deep Latent-Variable Models](https://arxiv.org/pdf/1705.08821.pdf)
     - ...
 - [The Variational Fair Autoencoder](https://arxiv.org/pdf/1511.00830.pdf)
-    - ...
+    - Note: Really cool before/after PCAish figures at the end of the article
 - [Cool Reddit summary of VAEs vs GANs](https://www.reddit.com/r/MachineLearning/comments/4r3pjy/variational_autoencoders_vae_vs_generative/)
     - ...
 - [Source Separation](https://en.wikipedia.org/wiki/Blind_signal_separation) - maybe not super relevant
-
+    - ...
+- [Extracting a Biologically Relevant Latent Space from Cancer Transcriptomes with Variational Autoencoders](https://www.biorxiv.org/content/early/2017/10/02/174474)
+    - Interesting... Seems like this may support the idea that autoencoders CAN generate biologically realistic transcriptomes.
+- [Privacy-preserving generative deep neural networks support clinical data sharing](https://www.biorxiv.org/content/early/2017/07/05/159756.1)
+    - Similar to what we're trying to do, but with an emphasis on preserving privacy and using GANs instead of autoencoders.  In other words, I think they are generating new fake data from the clinical latent space & then using the fake data in analyses.
 
 ## Introduction
 
