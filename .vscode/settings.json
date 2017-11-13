@@ -10,5 +10,24 @@
     "[markdown]": {
         "editor.wordWrap": "bounded",
         "editor.quickSuggestions": false
-    }
+    },
+    "python.linting.pylintArgs": [
+        "--disable=C,R"
+    ], // TODO: get rid of this line & fix warning issues
+    "python.venvPath": "~/.local/programs/anaconda2/envs",
+    "python.envFile": "~/.local/programs/anaconda2/envs/tf",
+    "python.pythonPath": "~/.local/programs/anaconda2/envs/tf/bin/python",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/**.pyc": true
+    },
+    "python.autoComplete.preloadModules": [
+        "tensorflow",
+        "numpy",
+        "pandas"
+    ]
 }
