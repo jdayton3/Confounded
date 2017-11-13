@@ -51,6 +51,9 @@ Neural networks are a tool modeled loosely after how the human brain learns; inp
     - ...
 - [The Variational Fair Autoencoder](https://arxiv.org/pdf/1511.00830.pdf)
     - ...
+- [Cool Reddit summary of VAEs vs GANs](https://www.reddit.com/r/MachineLearning/comments/4r3pjy/variational_autoencoders_vae_vs_generative/)
+    - ...
+- [Source Separation](https://en.wikipedia.org/wiki/Blind_signal_separation) - maybe not super relevant
 
 
 ## Introduction
