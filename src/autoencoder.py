@@ -1,19 +1,41 @@
 from . import hide_warnings
 import tensorflow as tf
+from tensorflow.contrib.layers import fully_connected
 from tensorflow.examples.tutorials.mnist import input_data
+
+INPUT_SIZE = 784
+CODE_SIZE = 20
+
+def show_image(x, name="image"):
+    # This assumes the input is a square image...
+    width_height = int(INPUT_SIZE**0.5)
+    img = tf.reshape(x, [-1, width_height, width_height, 1])
+    tf.summary.image(name, img, max_outputs=1)
 
 if __name__ == "__main__":
     mnist = input_data.read_data_sets("mnist_data", one_hot=True)
 
-    inputs = tf.placeholder(tf.float32, [None, 784])
-    outputs = tf.identity(inputs)
-    targets = tf.placeholder(tf.float32, [None, 10])
-    # TODO: make a super simple autoencoder with MNIST
+    inputs = tf.placeholder(tf.float32, [None, INPUT_SIZE])
+    show_image(inputs, "inputs")
+    with tf.name_scope("encoding"):
+        code = fully_connected(inputs, CODE_SIZE)
+    with tf.name_scope("decoding"):
+        outputs = fully_connected(code, INPUT_SIZE)
+    show_image(outputs, "outputs")
+    with tf.name_scope("optimizer"):
+        loss = tf.losses.mean_squared_error(inputs, outputs)
+        tf.summary.scalar("loss", loss)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+
 
     with tf.Session() as sess:
-        for _ in range(1):
-            batch_inputs, batch_targets = mnist.train.next_batch(100)
-            _ = sess.run([outputs], feed_dict={
-                inputs: batch_inputs,
-                targets: batch_targets
+        merged = tf.summary.merge_all()
+        writer = tf.summary.FileWriter("log", sess.graph)
+        tf.global_variables_initializer().run()
+
+        for i in range(10000):
+            batch_inputs, _ = mnist.train.next_batch(100)
+            summary, _ = sess.run([merged, optimizer], feed_dict={
+                inputs: batch_inputs
                 })
+            writer.add_summary(summary, i)
