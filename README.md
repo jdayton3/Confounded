@@ -86,6 +86,18 @@ Neural networks are a tool modeled loosely after how the human brain learns; inp
   - Containerization means it won't clash with other programs 
   - The rest of Geney's services also run in Docker (?) so we can keep it running with a smaller team (I think this is a good reason to use Docker, but grant people may not think so)
 
+### Methods
+
+#### Initial development
+
+Using MNIST as an initial dataset.  We'll split into two batches and add a simple linear batch effect (maybe make one more red and the other more green).  We'll see how well ComBat / SVA can remove that batch effect.  Then we'll use our VAFAE (lol, Variational Adversarial Fair Autoencoder... TODO: find a new name...) method to remove the batch effect.  Since we're using MNIST, we will be able to tell visually whether the batch effect is removed, both by ComBat/SVA and by our method.  We'll make another discriminator network (how to name this and keep it clearly distinct from the discriminator within the VAFAE? for now, let's call it D2) and train it to predict batch.  This is important because just because the two batches look visually like they are different doesn't mean that the important effect is actually gone.  We should probably use multiple standard DNN / other (Random Forests, etc.) image classification networks for this and see how all of them do so our results aren't biased just because we used the same D1 & D2.  Hopefully ComBat, SVA, and VAFAE will be able to completely remove the batch effect & completely fool D2.  Then we'll apply some nonlinear color shift (what would this look like?) to the separate batches, and see how well ComBat, SVA, and VAFAE do.
+
+Even though we're using images for the initial dataset, we probably don't want to use convolutions since in transcriptomic data, there's no real spatial meaning like there is in image data.  Unless we could somehow rearrange the transcriptome in order to add spatially meaningful information?  That sounds like a project in and of itself.
+
+Then we can apply it to cancer data...  We can take data from different sources, run some sort of standard analysis (like something that takes the transcriptome and says, "this person has leukemia") on the data.  Then we apply the batch adjustment, see if it completely removed the effect, and then see if the standard analysis performs any differently on the pre- and post- data.  This would be ideal if we could find some tools that don't just use deep learning or machine learning for this analysis, because then we could show that our VAFAE is useful as a pre-processing method to combine datasets for other analyses.
+
+Another optional thing we could do that would maybe be something for another time / another paper is to find datasets that have holes and use deep learning to predict reasonable values for those holes and fill them (like what Dr. Piccolo was saying about what Dr. Kauwe was doing with the Alzheimer's data).  Maybe this has already been done... If so, it could be cool to integrate into our tool!
+
 ## Results
 
 ## Discussion
