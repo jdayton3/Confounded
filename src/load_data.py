@@ -17,7 +17,9 @@ class RNASeq(object):
         return np.array(data)
 
     def next_batch(self, batch_size):
-        if self.cur_ix + batch_size < len(self.data):
+        if batch_size > len(self.data):
+            raise ValueError("Argument `batch_size` greater than length of dataset.")
+        if self.cur_ix + batch_size > len(self.data):
             np.random.shuffle(self.data)
             self.cur_ix = 0
         batch = self.data[self.cur_ix:self.cur_ix + batch_size]
