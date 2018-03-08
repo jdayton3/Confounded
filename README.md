@@ -103,23 +103,3 @@ Another optional thing we could do that would maybe be something for another tim
 ## Discussion
 
 ## Conclusion
-
-Personal Stuff
-    - Big Goals
-    - Milestones
-    - Recurring activities
-    - reading
-HW - anything for a class with a due date
-    - LearningSuite
-    - Slack
-    - In class
-    - Class websites
-Thesis
-    - Milestones
-Work for $
-    - Weekly break into segments ($50?)
-Scientific / school reading
-    - For class
-    - For research
-Grading
-    - Everything within a week of submission
