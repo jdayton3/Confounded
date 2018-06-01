@@ -12,9 +12,6 @@
         "editor.quickSuggestions": false,
         "editor.tabSize": 2
     },
-    "python.linting.pylintArgs": [
-        "--disable=C,R"
-    ], // TODO: get rid of this line & fix warning issues
     "python.venvPath": "~/.local/programs/anaconda2/envs",
     "python.envFile": "~/.local/programs/anaconda2/envs/tf",
     "python.pythonPath": "~/.local/programs/anaconda2/envs/tf/bin/python",
