@@ -1,8 +1,8 @@
-# pylint: disable=E1129,E0611
+# pylint: disable=E1129,E0611,E1101
 
 from . import hide_warnings
 import tensorflow as tf
-from tensorflow.contrib.layers import fully_connected
+from tensorflow.contrib.layers import fully_connected, batch_norm
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 
@@ -10,6 +10,7 @@ INPUT_SIZE = 784
 CODE_SIZE = 200
 BATCH_SIZE = 100
 NUM_TARGETS = 2
+NOISE = np.random.normal(size=INPUT_SIZE)
 
 # Statistics the normal distribution should have
 MEAN = 0.0
@@ -22,7 +23,17 @@ def show_image(x, name="image"):
     img = tf.reshape(x, [-1, width_height, width_height, 1])
     tf.summary.image(name, img, max_outputs=1)
 
-def mask(inputs):
+def mult_noise(inputs):
+    outs = inputs * NOISE
+    outs *= 1.0 / outs.max()
+    return outs
+
+def add_noise(inputs):
+    outs = inputs + 0.1 * NOISE
+    outs *= 1.0 / outs.max()
+    return outs
+
+def invert(inputs):
     return 1.0 - inputs
 
 if __name__ == "__main__":
@@ -34,11 +45,15 @@ if __name__ == "__main__":
         show_image(inputs, "inputs")
         with tf.name_scope("encoding"):
             encode1 = fully_connected(inputs, 512, activation_fn=tf.nn.relu)
+            encode1 = batch_norm(encode1)
             encode2 = fully_connected(encode1, 256, activation_fn=tf.nn.relu)
+            encode2 = batch_norm(encode2)
             code = fully_connected(encode2, CODE_SIZE, activation_fn=tf.nn.relu)
         with tf.name_scope("decoding"):
             decode1 = fully_connected(code, 256, activation_fn=tf.nn.relu)
+            decode1 = batch_norm(decode1)
             decode2 = fully_connected(decode1, 512, activation_fn=tf.nn.relu)
+            decode2 = batch_norm(decode2)
             outputs = fully_connected(decode2, INPUT_SIZE, activation_fn=tf.nn.sigmoid)
         show_image(outputs, "outputs")
 
@@ -65,8 +80,9 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/adversarial", sess.graph)
+        writer = tf.summary.FileWriter("log/add_noise", sess.graph)
         tf.global_variables_initializer().run()
+        mask = add_noise
 
         for i in range(10000):
             batch_inputs, _ = mnist.train.next_batch(BATCH_SIZE)
@@ -82,4 +98,5 @@ if __name__ == "__main__":
             })
             writer.add_summary(summary, i)
 
-            #TODO: change the masking layer, trim/normalize the weights
+            #TODO: make some linear mask, test the AE vs ComBat (and eventually SVA), repeat w/ nonlinear mask
+            #TODO: get committee meeting (hopefully) for 2nd week of April & send out prospectus ~1wk prior, schedule for TMCB
