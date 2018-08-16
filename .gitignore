@@ -1,3 +1,7 @@
 *data/
-*.pyc
 *log/
+*.pyc
+objectdb
+.Rproj.user
+.RData
+.Rhistory

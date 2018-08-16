@@ -1,0 +1,30 @@
+---
+title: "ComBat"
+author: "Jonathan Dayton"
+date: "7/25/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+install_sva <- function() {
+  ## try http:// if https:// URLs are not supported
+  source("https://bioconductor.org/biocLite.R")
+  biocLite("sva")
+}
+if (!require("sva")) install_sva()
+library(sva)
+```
+
+```{r}
+df = read.csv("../../data/mnist_matrix.csv")
+data = as.matrix(df)
+```
+
+```{r}
+ComBat(data, c(rep(1, 5000), rep(2, 5000)))
+# Error here.. maybe because of this? https://groups.google.com/forum/#!msg/combat-user-forum/_z8DxYQNFJ8/7UI_a2nCoUEJ
+```
