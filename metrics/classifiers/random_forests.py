@@ -5,8 +5,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from csvread import CSVData
 
-def cross_validate(path, times=100, folds=5):
-    classifier = RandomForestClassifier()
+def cross_validate(path, times=100, folds=5, model=RandomForestClassifier):
+    classifier = model()
     data = CSVData(path)
     accuracies = []
     for _ in range(times):
