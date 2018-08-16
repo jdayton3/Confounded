@@ -24,6 +24,11 @@ df = read.csv("../../data/mnist_matrix.csv")
 data = as.matrix(df)
 ```
 
+Remove the features that don't vary, i.e. the ones where max() == min().
+
+```{r}
+```
+
 ```{r}
 ComBat(data, c(rep(1, 5000), rep(2, 5000)))
 # Error here.. maybe because of this? https://groups.google.com/forum/#!msg/combat-user-forum/_z8DxYQNFJ8/7UI_a2nCoUEJ
