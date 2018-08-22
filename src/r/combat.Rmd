@@ -7,7 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
+if (!require("pacman")) install.packages("pacman")
+p_load("tidyverse", "docstring")
 ```
 
 ```{r include=FALSE}
@@ -21,30 +22,87 @@ library(sva)
 ```
 
 ```{r}
-df = read.csv("../../data/mnist_matrix.csv")
+df = read.csv("../../data/mnist_matrix.csv", header = FALSE)
 data = as.matrix(df)
 ```
 
 Remove the features that don't vary, i.e. the ones where max() == min().
 
 ```{r}
-remove_nonvarying_rows <- function(matrix_)
+varying_row_mask <- function(matrix_)
 {
-  matrix_ <- matrix_ %>%
+  #' Get a varying row mask
+  #' 
+  #' Get a boolean vector mask for the rows with & without varying values.
+  #'
+  #' @param matrix_ A numerical matrix.
+  #' 
+  #' @return Boolean vector.
+  #'
+  #' @examples
+  #' x <- matrix(c(2, 1, 3, 3, 1, 4, 4, 1, 5, 5, 1, 6), nrow=3, ncol=4)
+  #' x
+  #' ##      [,1] [,2] [,3] [,4]
+  #' ## [1,]    2    3    4    5
+  #' ## [2,]    1    1    1    1
+  #' ## [3,]    3    4    5    6
+  #' varying_row_mask(x)
+  #' ## [1]  TRUE FALSE  TRUE
+  matrix_ %>%
     tbl_df() %>%
     mutate_(min = min(names(.)), max = max(names(.))) %>%
-    filter(max > min) %>%
-    select(-min, -max) %>%
-    as.matrix()
-  colnames(matrix_) <- NULL
+    mutate(nonvarying = max != min) %>%
+    .$nonvarying
+}
+
+remove_nonvarying_rows <- function(matrix_)
+{
+  #' Remove features that don't vary.
+  #'
+  #' ComBat requires that all inputs have some variance, so we need to remove
+  #' any nonvarying rows before passing a matrix into ComBat.
+  #'
+  #' @param matrix_ A numerical matrix.
+  #'
+  #' @return The original matrix without any nonvarying rows.
+  varying_rows <- matrix_ %>%
+    varying_row_mask()
+  matrix_[varying_rows,]
+}
+
+ComBat_ignore_nonvariance <- function(matrix_, batch)
+{
+  #' Run ComBat and ignore nonvarying features.
+  #'
+  #' ComBat requires that all features have some variance (and probably assumes
+  #' that all features are normally distributed). Since some features don't
+  #' vary across samples, this function ignores nonvarying features before
+  #' running ComBat.
+  #'
+  #' @param matrix_ The matrix to batch adjust with ComBat.
+  #' @param batch The per-sample batch assignments. See the ComBat function for
+  #' more information.
+  #' 
+  #' @return The matrix_ after batch adjustment.
+  variance_mask <- varying_row_mask(matrix_)
+  varying_rows <- remove_nonvarying_rows(matrix_)
+  adjusted <- ComBat(varying_rows, batch)
+  matrix_[variance_mask,] <- adjusted
   matrix_
 }
 
-fake_matrix <- matrix(c(1, 2, 3, 1, 3, 4, 1, 4, 5, 1, 5, 6), nrow=3, ncol=4)
+fake_matrix <- matrix(c(2, 1, 3, 3, 1, 4, 4, 1, 5, 5, 1, 6), nrow=3, ncol=4)
 fake_matrix
-fake_matrix %>% remove_nonvarying_rows()
+fake_removed <- fake_matrix %>% remove_nonvarying_rows()
+fake_removed
+
+fake_mask <- varying_row_mask(fake_matrix)
+fake2 <- fake_matrix / 2
+fake2[fake_mask,] <- fake_removed
+fake2
 ```
 
 ```{r}
-ComBat(remove_nonvarying_rows(data), c(rep(1, 5000), rep(2, 5000)))
+adjusted <- ComBat_ignore_nonvariance(data, c(rep(1, 5000), rep(2, 5000)))
+write.table(adjusted, "../../data/ComBat-adjusted.csv", sep = ",", row.names = FALSE, col.names = FALSE)
 ```
