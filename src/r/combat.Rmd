@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 ```{r include=FALSE}
@@ -27,9 +28,23 @@ data = as.matrix(df)
 Remove the features that don't vary, i.e. the ones where max() == min().
 
 ```{r}
+remove_nonvarying_rows <- function(matrix_)
+{
+  matrix_ <- matrix_ %>%
+    tbl_df() %>%
+    mutate_(min = min(names(.)), max = max(names(.))) %>%
+    filter(max > min) %>%
+    select(-min, -max) %>%
+    as.matrix()
+  colnames(matrix_) <- NULL
+  matrix_
+}
+
+fake_matrix <- matrix(c(1, 2, 3, 1, 3, 4, 1, 4, 5, 1, 5, 6), nrow=3, ncol=4)
+fake_matrix
+fake_matrix %>% remove_nonvarying_rows()
 ```
 
 ```{r}
-ComBat(data, c(rep(1, 5000), rep(2, 5000)))
-# Error here.. maybe because of this? https://groups.google.com/forum/#!msg/combat-user-forum/_z8DxYQNFJ8/7UI_a2nCoUEJ
+ComBat(remove_nonvarying_rows(data), c(rep(1, 5000), rep(2, 5000)))
 ```
