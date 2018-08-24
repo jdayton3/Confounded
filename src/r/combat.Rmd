@@ -9,9 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 if (!require("pacman")) install.packages("pacman")
 p_load("tidyverse", "docstring")
-```
 
-```{r include=FALSE}
 install_sva <- function() {
   ## try http:// if https:// URLs are not supported
   source("https://bioconductor.org/biocLite.R")
@@ -19,11 +17,6 @@ install_sva <- function() {
 }
 if (!require("sva")) install_sva()
 library(sva)
-```
-
-```{r}
-df = read.csv("../../data/mnist_matrix.csv", header = FALSE)
-data = as.matrix(df)
 ```
 
 Remove the features that don't vary, i.e. the ones where max() == min().
@@ -65,6 +58,18 @@ remove_nonvarying_rows <- function(matrix_)
   #' @param matrix_ A numerical matrix.
   #'
   #' @return The original matrix without any nonvarying rows.
+  #' 
+  #' @examples
+  #' x <- matrix(c(2, 1, 3, 3, 1, 4, 4, 1, 5, 5, 1, 6), nrow=3, ncol=4)
+  #' x
+  #' ##      [,1] [,2] [,3] [,4]
+  #' ## [1,]    2    3    4    5
+  #' ## [2,]    1    1    1    1
+  #' ## [3,]    3    4    5    6
+  #' remove_nonvarying_rows(x)
+  #' ##      [,1] [,2] [,3] [,4]
+  #' ## [1,]    2    3    4    5
+  #' ## [2,]    3    4    5    6
   varying_rows <- matrix_ %>%
     varying_row_mask()
   matrix_[varying_rows,]
@@ -84,25 +89,22 @@ ComBat_ignore_nonvariance <- function(matrix_, batch)
   #' more information.
   #' 
   #' @return The matrix_ after batch adjustment.
+  #'
+  #' @examples
+  #' ComBat_ignore_nonvariance(data, c(rep(1, 5000), rep(2, 5000)))
   variance_mask <- varying_row_mask(matrix_)
   varying_rows <- remove_nonvarying_rows(matrix_)
   adjusted <- ComBat(varying_rows, batch)
   matrix_[variance_mask,] <- adjusted
   matrix_
 }
-
-fake_matrix <- matrix(c(2, 1, 3, 3, 1, 4, 4, 1, 5, 5, 1, 6), nrow=3, ncol=4)
-fake_matrix
-fake_removed <- fake_matrix %>% remove_nonvarying_rows()
-fake_removed
-
-fake_mask <- varying_row_mask(fake_matrix)
-fake2 <- fake_matrix / 2
-fake2[fake_mask,] <- fake_removed
-fake2
 ```
 
+## Run it
+
 ```{r}
+df = read.csv("../../data/mnist_matrix.csv", header = FALSE)
+data = as.matrix(df)
 adjusted <- ComBat_ignore_nonvariance(data, c(rep(1, 5000), rep(2, 5000)))
 write.table(adjusted, "../../data/ComBat-adjusted.csv", sep = ",", row.names = FALSE, col.names = FALSE)
 ```
