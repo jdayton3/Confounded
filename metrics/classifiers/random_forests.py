@@ -10,13 +10,15 @@ def cross_validate(path, times=100, folds=5, model=RandomForestClassifier):
     data = CSVData(path)
     accuracies = []
     for _ in range(times):
+        print(f"{_+1}/{times}", end="\r")
         accuracies += list(cross_val_score(
             classifier, data.X, data.Y, cv=folds, scoring="accuracy"
         ))
+    print()
     return sum(accuracies) / len(accuracies)
 
 
 if __name__ == "__main__":
     print(
-        cross_validate("test_data.csv")
+        cross_validate("../../data/tidy_combat.csv", times=5)
     )
