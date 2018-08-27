@@ -1,3 +1,15 @@
+"""Read a CSV file in the format scikit-learn requires.
+
+The CSV should follow the tidy data format (i.e. one sample per row, one
+feature per column) and should have the following columns:
+
+- Sample: a unique identifier for each row
+- Batch: the batch to which each sample belongs
+
+Every other column should be a quantitative feature.
+"""
+
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
