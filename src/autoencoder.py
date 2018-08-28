@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_saver", sess.graph)
+        writer = tf.summary.FileWriter("log/ae_saver2", sess.graph)
         tf.global_variables_initializer().run()
         mask = add_noise
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
             })
             writer.add_summary(summary, i)
 
-        # Save adjusted & non-adjusted numbers
+        # Run confounded on 10000 MNIST instances
         nonadj_a_, _ = mnist.train.next_batch(5000)
         nonadj_a = []
         for x in nonadj_a_:
@@ -128,16 +128,10 @@ if __name__ == "__main__":
             inputs: nonadj,
             targets: targs,
         })
+        # Save adjusted & non-adjusted numbers
         import pandas as pd
-        batch = ["A"] * 5000 + ["B"] * 5000
-        cols = ["Sample", "Batch"] + list(range(INPUT_SIZE))
+        from . import reformat
         df_nonadj = pd.DataFrame(nonadj, columns=list(range(INPUT_SIZE)))
         df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
-        df_nonadj["Batch"] = batch
-        df_adj["Batch"] = batch
-        df_nonadj["Sample"] = df_nonadj.index
-        df_adj["Sample"] = df_adj.index
-        df_nonadj = df_nonadj[cols]
-        df_adj = df_adj[cols]
-        df_nonadj.to_csv("./data/tidy_batches.csv", index=False)
-        df_adj.to_csv("./data/tidy_confounded.csv", index=False)
+        reformat.to_csv(df_nonadj, "./data/tidy_batches2.csv", tidy=True)
+        reformat.to_csv(df_adj, "./data/tidy_confounded2.csv", tidy=True)
