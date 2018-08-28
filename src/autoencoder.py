@@ -61,8 +61,8 @@ if __name__ == "__main__":
     # Discriminator net
     with tf.name_scope("discriminator"):
         targets = tf.placeholder(tf.float32, [None, NUM_TARGETS])
-        # fc1 = fully_connected(outputs, 256)
-        fc1 = fully_connected(inputs, 256)
+        fc1 = fully_connected(outputs, 256)
+        # fc1 = fully_connected(inputs, 256)
         fc2 = fully_connected(fc1, 128)
         fc3 = fully_connected(fc2, 64)
         fc4 = fully_connected(fc3, 8)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/order_2_discriminator_0.001", sess.graph)
+        writer = tf.summary.FileWriter("log/ae_saver2", sess.graph)
         tf.global_variables_initializer().run()
         mask = add_noise
 
@@ -90,6 +90,7 @@ if __name__ == "__main__":
         noiser_0 = Noise((INPUT_SIZE,), discount_factor=df)
         noiser_1 = Noise((INPUT_SIZE,), discount_factor=df)
 
+        # Train
         for i in range(10000):
             batch_inputs, _ = mnist.train.next_batch(BATCH_SIZE)
             if i % 2 == 0:
@@ -105,12 +106,32 @@ if __name__ == "__main__":
                 target = [[0.0, 1.0]] * BATCH_SIZE
             batch_inputs = adj_batch_inputs
             target = np.array(target)
-            # summary, disc, _, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
-            summary, disc, _ = sess.run([merged, outputs, d_optimizer], feed_dict={
+            summary, disc, out, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
+            # summary, disc, _ = sess.run([merged, outputs, d_optimizer], feed_dict={
                 inputs: batch_inputs,
                 targets: target,
             })
             writer.add_summary(summary, i)
 
-            #TODO: make some linear mask, test the AE vs ComBat (and eventually SVA), repeat w/ nonlinear mask
-            #TODO: get committee meeting (hopefully) for 2nd week of April & send out prospectus ~1wk prior, schedule for TMCB
+        # Run confounded on 10000 MNIST instances
+        nonadj_a_, _ = mnist.train.next_batch(5000)
+        nonadj_a = []
+        for x in nonadj_a_:
+            nonadj_a.append(noiser_0.adjust(x))
+        nonadj_b_, _ = mnist.train.next_batch(5000)
+        nonadj_b = []
+        for x in nonadj_b_:
+            nonadj_b.append(noiser_1.adjust(x))
+        nonadj = nonadj_a + nonadj_b
+        targs = [[1.0, 0.0]] * 5000 + [[0.0, 1.0]] * 5000
+        adj, = sess.run([outputs], feed_dict={
+            inputs: nonadj,
+            targets: targs,
+        })
+        # Save adjusted & non-adjusted numbers
+        import pandas as pd
+        from . import reformat
+        df_nonadj = pd.DataFrame(nonadj, columns=list(range(INPUT_SIZE)))
+        df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
+        reformat.to_csv(df_nonadj, "./data/tidy_batches2.csv", tidy=True)
+        reformat.to_csv(df_adj, "./data/tidy_confounded2.csv", tidy=True)
