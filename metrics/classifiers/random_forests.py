@@ -19,6 +19,7 @@ def cross_validate(path, times=100, folds=5, model=RandomForestClassifier):
 
 
 if __name__ == "__main__":
+    INPUT_PATH = "../../data/tidy_combat.csv"
     print(
-        cross_validate("../../data/tidy_combat.csv", times=5)
+        cross_validate(INPUT_PATH, times=5)
     )
