@@ -7,6 +7,7 @@ from tensorflow.contrib.layers import fully_connected, batch_norm
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 
+INPUT_PATH = "../data/mnist_matrix.csv"
 INPUT_SIZE = 784
 CODE_SIZE = 200
 BATCH_SIZE = 100
@@ -38,6 +39,7 @@ def invert(inputs):
     return 1.0 - inputs
 
 if __name__ == "__main__":
+    # TODO: read CSV instead of from tensorflow.
     mnist = input_data.read_data_sets("mnist_data", one_hot=True)
 
     # Autoencoder net
@@ -92,6 +94,7 @@ if __name__ == "__main__":
 
         # Train
         for i in range(10000):
+            # TODO: make some way to get batches from the CSV input.
             batch_inputs, _ = mnist.train.next_batch(BATCH_SIZE)
             if i % 2 == 0:
                 # batch_inputs = mask(batch_inputs)
