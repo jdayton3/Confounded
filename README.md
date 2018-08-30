@@ -8,7 +8,7 @@ Batch adjustment with adversarial autoencoders.
 
 ### Confounded dependencies
 
-1. [Anaconda](https://conda.io/docs/user-guide/install/index.html)
+1. [Anaconda](https://conda.io/docs/user-guide/install/index.html). *Note: Python 2 is currently required for Confounded, but Python 3 is used for benchmarking scripts. [An issue](https://github.com/jdayton3/Confounded/issues/1) is open to upgrade all code to the latest version of Python 3.*
 2. [Tensorflow](https://www.tensorflow.org/install/)
 
 ### Benchmarking dependencies
@@ -50,7 +50,7 @@ $ python3 random_forests.py
 
 Results were obtained by creating a balanced CSV of artificially batched MNIST images, using various methods to correct for the artificial batch effects, and classifying based on batch using the scikit-learn RandomForestClassifier with default parameters.
 
-Higher accuracies represent that the classifier was still able to detect batch effects after adjustment. Since the two batches were balanced, a perfect batch adjustment should yield a classification accuracy of 0.5.
+Higher accuracies represent that the classifier was still able to detect batch effects after adjustment. Since the two batches were balanced, a perfect batch adjustment should yield a classification accuracy of 0.5. We also interpret a longer training time to mean that the classifier had a more difficult time detecting differences between batches.
 
 | Type of adjustment | Accuracy |   Time  |
 |:-------------------|---------:|--------:|
