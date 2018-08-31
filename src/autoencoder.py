@@ -1,18 +1,18 @@
 # pylint: disable=E1129,E0611,E1101
 
 from . import hide_warnings
-from .adjustments import Noise
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected, batch_norm
-import numpy as np
 import pandas as pd
 from . import reformat
+from .load_data import split_features_labels
 
 INPUT_PATH = "./data/tidy_batches.csv"
+META_COLS = ["Sample", "Batch"]
 INPUT_SIZE = 784
-CODE_SIZE = 200
-BATCH_SIZE = 100
 NUM_TARGETS = 2
+BATCH_SIZE = 100
+CODE_SIZE = 200
 
 def show_image(x, name="image"):
     # This assumes the input is a square image...
@@ -66,13 +66,13 @@ if __name__ == "__main__":
         tf.global_variables_initializer().run()
 
         data = pd.read_csv(INPUT_PATH)
-        meta_cols = ["Sample", "Batch"]
 
         # Train
         for i in range(10000):
-            minibatch = data.sample(BATCH_SIZE, replace=True)
-            labels = np.array(pd.get_dummies(minibatch["Batch"]), dtype=float)
-            features = np.array(minibatch.drop(meta_cols, axis=1))
+            features, labels = split_features_labels(
+                data.sample(BATCH_SIZE, replace=True),
+                meta_cols=META_COLS
+            )
             summary, disc, out, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
                 inputs: features,
                 targets: labels,
@@ -80,17 +80,17 @@ if __name__ == "__main__":
             writer.add_summary(summary, i)
 
         # Run the csv through confounded
-        labels = np.array(pd.get_dummies(data["Batch"]), dtype=float)
-        features = np.array(data.drop(meta_cols, axis=1))
+        features, labels = split_features_labels(data, meta_cols=META_COLS)
         adj, = sess.run([outputs], feed_dict={
             inputs: features,
             targets: labels,
         })
         # Save adjusted & non-adjusted numbers
-        df_adj = pd.DataFrame(
-            adj,
-            columns=list(range(INPUT_SIZE)),
+        df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
+        reformat.to_csv(
+            df_adj,
+            "./data/tidy_confounded2.csv",
+            tidy=True,
             batch=data["Batch"],
             sample=data["Sample"]
         )
-        reformat.to_csv(df_adj, "./data/tidy_confounded2.csv", tidy=True)
