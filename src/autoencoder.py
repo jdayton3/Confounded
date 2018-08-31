@@ -8,10 +8,11 @@ from . import reformat
 from .load_data import split_features_labels
 
 INPUT_PATH = "./data/tidy_batches.csv"
+OUTPUT_PATH = "./data/tidy_confounded2.csv"
 META_COLS = ["Sample", "Batch"]
 INPUT_SIZE = 784
 NUM_TARGETS = 2
-BATCH_SIZE = 100
+MINIBATCH_SIZE = 100
 CODE_SIZE = 200
 
 def show_image(x, name="image"):
@@ -70,7 +71,7 @@ if __name__ == "__main__":
         # Train
         for i in range(10000):
             features, labels = split_features_labels(
-                data.sample(BATCH_SIZE, replace=True),
+                data.sample(MINIBATCH_SIZE, replace=True),
                 meta_cols=META_COLS
             )
             summary, disc, out, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
@@ -87,9 +88,10 @@ if __name__ == "__main__":
         })
         # Save adjusted & non-adjusted numbers
         df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
+        OUTPUT_PATH = "./data/tidy_confounded2.csv"
         reformat.to_csv(
             df_adj,
-            "./data/tidy_confounded2.csv",
+            OUTPUT_PATH,
             tidy=True,
             batch=data["Batch"],
             sample=data["Sample"]
