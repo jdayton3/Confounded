@@ -4,10 +4,11 @@ from . import hide_warnings
 from .adjustments import Noise
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected, batch_norm
-from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
+import pandas as pd
+from . import reformat
 
-INPUT_PATH = "../data/mnist_matrix.csv"
+INPUT_PATH = "./data/tidy_batches.csv"
 INPUT_SIZE = 784
 CODE_SIZE = 200
 BATCH_SIZE = 100
@@ -61,57 +62,35 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_saver2", sess.graph)
+        writer = tf.summary.FileWriter("log/ae_csv", sess.graph)
         tf.global_variables_initializer().run()
 
-        df = 0.001
-        noiser_0 = Noise((INPUT_SIZE,), discount_factor=df)
-        noiser_1 = Noise((INPUT_SIZE,), discount_factor=df)
-
-        # TODO: read CSV instead of from tensorflow.
-        mnist = input_data.read_data_sets("mnist_data", one_hot=True)
+        data = pd.read_csv(INPUT_PATH)
+        meta_cols = ["Sample", "Batch"]
 
         # Train
         for i in range(10000):
-            # TODO: make some way to get batches from the CSV input.
-            batch_inputs, _ = mnist.train.next_batch(BATCH_SIZE)
-            if i % 2 == 0:
-                adj_batch_inputs = []
-                for x in batch_inputs:
-                    adj_batch_inputs.append(noiser_0.adjust(x))
-                target = [[1.0, 0.0]] * BATCH_SIZE
-            else:
-                adj_batch_inputs = []
-                for x in batch_inputs:
-                    adj_batch_inputs.append(noiser_1.adjust(x))
-                target = [[0.0, 1.0]] * BATCH_SIZE
-            batch_inputs = adj_batch_inputs
-            target = np.array(target)
+            minibatch = data.sample(BATCH_SIZE, replace=True)
+            labels = np.array(pd.get_dummies(minibatch["Batch"]), dtype=float)
+            features = np.array(minibatch.drop(meta_cols, axis=1))
             summary, disc, out, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
-                inputs: batch_inputs,
-                targets: target,
+                inputs: features,
+                targets: labels,
             })
             writer.add_summary(summary, i)
 
-        # Run confounded on 10000 MNIST instances
-        nonadj_a_, _ = mnist.train.next_batch(5000)
-        nonadj_a = []
-        for x in nonadj_a_:
-            nonadj_a.append(noiser_0.adjust(x))
-        nonadj_b_, _ = mnist.train.next_batch(5000)
-        nonadj_b = []
-        for x in nonadj_b_:
-            nonadj_b.append(noiser_1.adjust(x))
-        nonadj = nonadj_a + nonadj_b
-        targs = [[1.0, 0.0]] * 5000 + [[0.0, 1.0]] * 5000
+        # Run the csv through confounded
+        labels = np.array(pd.get_dummies(data["Batch"]), dtype=float)
+        features = np.array(data.drop(meta_cols, axis=1))
         adj, = sess.run([outputs], feed_dict={
-            inputs: nonadj,
-            targets: targs,
+            inputs: features,
+            targets: labels,
         })
         # Save adjusted & non-adjusted numbers
-        import pandas as pd
-        from . import reformat
-        df_nonadj = pd.DataFrame(nonadj, columns=list(range(INPUT_SIZE)))
-        df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
-        reformat.to_csv(df_nonadj, "./data/tidy_batches2.csv", tidy=True)
+        df_adj = pd.DataFrame(
+            adj,
+            columns=list(range(INPUT_SIZE)),
+            batch=data["Batch"],
+            sample=data["Sample"]
+        )
         reformat.to_csv(df_adj, "./data/tidy_confounded2.csv", tidy=True)
