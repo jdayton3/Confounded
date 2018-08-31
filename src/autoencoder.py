@@ -12,31 +12,12 @@ INPUT_SIZE = 784
 CODE_SIZE = 200
 BATCH_SIZE = 100
 NUM_TARGETS = 2
-NOISE = np.random.normal(size=INPUT_SIZE)
-
-# Statistics the normal distribution should have
-MEAN = 0.0
-STDEV = 1.0
-
 
 def show_image(x, name="image"):
     # This assumes the input is a square image...
     width_height = int(INPUT_SIZE**0.5)
     img = tf.reshape(x, [-1, width_height, width_height, 1])
     tf.summary.image(name, img, max_outputs=1)
-
-def mult_noise(inputs):
-    outs = inputs * NOISE
-    outs *= 1.0 / outs.max()
-    return outs
-
-def add_noise(inputs):
-    outs = inputs + 0.1 * NOISE
-    outs *= 1.0 / outs.max()
-    return outs
-
-def invert(inputs):
-    return 1.0 - inputs
 
 if __name__ == "__main__":
     # Autoencoder net
@@ -61,7 +42,6 @@ if __name__ == "__main__":
     with tf.name_scope("discriminator"):
         targets = tf.placeholder(tf.float32, [None, NUM_TARGETS])
         fc1 = fully_connected(outputs, 256)
-        # fc1 = fully_connected(inputs, 256)
         fc2 = fully_connected(fc1, 128)
         fc3 = fully_connected(fc2, 64)
         fc4 = fully_connected(fc3, 8)
@@ -83,7 +63,6 @@ if __name__ == "__main__":
         merged = tf.summary.merge_all()
         writer = tf.summary.FileWriter("log/ae_saver2", sess.graph)
         tf.global_variables_initializer().run()
-        mask = add_noise
 
         df = 0.001
         noiser_0 = Noise((INPUT_SIZE,), discount_factor=df)
@@ -97,7 +76,6 @@ if __name__ == "__main__":
             # TODO: make some way to get batches from the CSV input.
             batch_inputs, _ = mnist.train.next_batch(BATCH_SIZE)
             if i % 2 == 0:
-                # batch_inputs = mask(batch_inputs)
                 adj_batch_inputs = []
                 for x in batch_inputs:
                     adj_batch_inputs.append(noiser_0.adjust(x))
@@ -110,7 +88,6 @@ if __name__ == "__main__":
             batch_inputs = adj_batch_inputs
             target = np.array(target)
             summary, disc, out, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
-            # summary, disc, _ = sess.run([merged, outputs, d_optimizer], feed_dict={
                 inputs: batch_inputs,
                 targets: target,
             })
