@@ -12,13 +12,13 @@ def _add_info_cols(df, tidy=False, batch=None, sample=None):
     return _reorder_cols(df)
 
 def _check_batch(df, batch):
-    if not batch:
+    if batch is None:
         num = int(len(df) / 2)
         return ['A'] * num + ['B'] * num
     return batch
 
 def _check_sample(df, sample):
-    if not sample:
+    if sample is None:
         return df.index
     return sample
 

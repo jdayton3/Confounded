@@ -24,13 +24,31 @@ To run Confounded, run the following command:
 python2 -m src.autoencoder
 ```
 
-It is currently only set up to run on artificially batched MNIST digits, but [an issue](https://github.com/jdayton3/Confounded/issues/13) is open to allow it to run on any properly formatted CSV.
+To alter Confounded's behavior, adjust the following variables in `/src/autoencoder.py`:
+
+| Variable         | Description                                                                                                                                                              |
+|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `INPUT_PATH`     | The path to the input data.                                                                                                                                              |
+| `OUTPUT_PATH`    | The path where the adjusted data should be stored.                                                                                                                       |
+| `META_COLS`      | A list of columns that should be treated as meta  data, not as features to be adjusted                                                                                   |
+| `INPUT_SIZE`     | The number of features to be adjusted. (See  [#16](https://github.com/jdayton3/Confounded/issues/16))                                                                    |
+| `NUM_TARGETS`    | The number of targets for the discriminator to  distinguish between (i.e. the number of distinct  batches, see  [#16](https://github.com/jdayton3/Confounded/issues/16)) |
+| `MINIBATCH_SIZE` | The size of the  [mini-batch](https://datascience.stackexchange.com/q/16807)  for training.                                                                              |
+| `CODE_SIZE`      | The size of the encoding layer of the autoencoder.                                                                                                                       |
+
+*Note: issues [#12](https://github.com/jdayton3/Confounded/issues/12) and [#16](https://github.com/jdayton3/Confounded/issues/16) are open and will make setting these variables easier.*
 
 ### Data preparation
 
-Confounded isn't currently set up to take data from any source besides MNIST.
+Data should be a CSV in [Tidy Data](http://vita.had.co.nz/papers/tidy-data.html) format. Additionally, the following specifications must be met:
 
-In future iterations, data will need to follow the specifications listed in [this README](metrics/README.md).
+- One column is the sample ID and is called "Sample"
+- One column is the batch ID and is called "Batch"
+- The rest of the columns are numeric features
+
+For an example of properly formatted data, see `/metrics/classifiers/test_data.csv`.
+
+*Note: issue [#18](https://github.com/jdayton3/Confounded/issues/18) will allow for more "meta columns" to be included in the input data.*
 
 ### Benchmarking
 

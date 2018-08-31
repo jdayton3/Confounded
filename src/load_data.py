@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import gzip
 
 class RNASeq(object):
@@ -25,6 +26,31 @@ class RNASeq(object):
         batch = self.data[self.cur_ix:self.cur_ix + batch_size]
         self.cur_ix += batch_size
         return batch
+
+def split_features_labels(df, meta_cols=None):
+    """Split a dataframe into features and labels numpy arrays.
+
+    Arguments:
+        df {pandas.DataFrame} -- A tidy dataframe with meta columns, a
+            Batch column, and quantitative data.
+
+    Keyword Arguments:
+        meta_cols {list of strings} -- Columns that should not be
+            used as features to be batch-adjusted (default:
+            {["Sample", "Batch"]})
+
+    Returns:
+        [(numpy.array, numpy.array)] -- Tuple of features and labels,
+            where features are the quantitative data from the given
+            dataframe and labels are the one-hot encoded batches for
+            each instance.
+    """
+
+    if meta_cols is None:
+        meta_cols = ["Sample", "Batch"]
+    features = np.array(df.drop(meta_cols, axis=1))
+    labels = np.array(pd.get_dummies(df["Batch"]), dtype=float)
+    return features, labels
 
 if __name__ == "__main__":
     data = RNASeq()

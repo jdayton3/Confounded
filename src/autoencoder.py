@@ -1,22 +1,19 @@
 # pylint: disable=E1129,E0611,E1101
 
 from . import hide_warnings
-from .adjustments import Noise
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected, batch_norm
-from tensorflow.examples.tutorials.mnist import input_data
-import numpy as np
+import pandas as pd
+from . import reformat
+from .load_data import split_features_labels
 
+INPUT_PATH = "./data/tidy_batches.csv"
+OUTPUT_PATH = "./data/tidy_confounded2.csv"
+META_COLS = ["Sample", "Batch"]
 INPUT_SIZE = 784
-CODE_SIZE = 200
-BATCH_SIZE = 100
 NUM_TARGETS = 2
-NOISE = np.random.normal(size=INPUT_SIZE)
-
-# Statistics the normal distribution should have
-MEAN = 0.0
-STDEV = 1.0
-
+MINIBATCH_SIZE = 100
+CODE_SIZE = 200
 
 def show_image(x, name="image"):
     # This assumes the input is a square image...
@@ -24,22 +21,7 @@ def show_image(x, name="image"):
     img = tf.reshape(x, [-1, width_height, width_height, 1])
     tf.summary.image(name, img, max_outputs=1)
 
-def mult_noise(inputs):
-    outs = inputs * NOISE
-    outs *= 1.0 / outs.max()
-    return outs
-
-def add_noise(inputs):
-    outs = inputs + 0.1 * NOISE
-    outs *= 1.0 / outs.max()
-    return outs
-
-def invert(inputs):
-    return 1.0 - inputs
-
 if __name__ == "__main__":
-    mnist = input_data.read_data_sets("mnist_data", one_hot=True)
-
     # Autoencoder net
     with tf.name_scope("autoencoder"):
         inputs = tf.placeholder(tf.float32, [None, INPUT_SIZE])
@@ -62,7 +44,6 @@ if __name__ == "__main__":
     with tf.name_scope("discriminator"):
         targets = tf.placeholder(tf.float32, [None, NUM_TARGETS])
         fc1 = fully_connected(outputs, 256)
-        # fc1 = fully_connected(inputs, 256)
         fc2 = fully_connected(fc1, 128)
         fc3 = fully_connected(fc2, 64)
         fc4 = fully_connected(fc3, 8)
@@ -82,56 +63,36 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_saver2", sess.graph)
+        writer = tf.summary.FileWriter("log/ae_csv", sess.graph)
         tf.global_variables_initializer().run()
-        mask = add_noise
 
-        df = 0.001
-        noiser_0 = Noise((INPUT_SIZE,), discount_factor=df)
-        noiser_1 = Noise((INPUT_SIZE,), discount_factor=df)
+        data = pd.read_csv(INPUT_PATH)
 
         # Train
         for i in range(10000):
-            batch_inputs, _ = mnist.train.next_batch(BATCH_SIZE)
-            if i % 2 == 0:
-                # batch_inputs = mask(batch_inputs)
-                adj_batch_inputs = []
-                for x in batch_inputs:
-                    adj_batch_inputs.append(noiser_0.adjust(x))
-                target = [[1.0, 0.0]] * BATCH_SIZE
-            else:
-                adj_batch_inputs = []
-                for x in batch_inputs:
-                    adj_batch_inputs.append(noiser_1.adjust(x))
-                target = [[0.0, 1.0]] * BATCH_SIZE
-            batch_inputs = adj_batch_inputs
-            target = np.array(target)
+            features, labels = split_features_labels(
+                data.sample(MINIBATCH_SIZE, replace=True),
+                meta_cols=META_COLS
+            )
             summary, disc, out, _ = sess.run([merged, outputs, optimizer, d_optimizer], feed_dict={
-            # summary, disc, _ = sess.run([merged, outputs, d_optimizer], feed_dict={
-                inputs: batch_inputs,
-                targets: target,
+                inputs: features,
+                targets: labels,
             })
             writer.add_summary(summary, i)
 
-        # Run confounded on 10000 MNIST instances
-        nonadj_a_, _ = mnist.train.next_batch(5000)
-        nonadj_a = []
-        for x in nonadj_a_:
-            nonadj_a.append(noiser_0.adjust(x))
-        nonadj_b_, _ = mnist.train.next_batch(5000)
-        nonadj_b = []
-        for x in nonadj_b_:
-            nonadj_b.append(noiser_1.adjust(x))
-        nonadj = nonadj_a + nonadj_b
-        targs = [[1.0, 0.0]] * 5000 + [[0.0, 1.0]] * 5000
+        # Run the csv through confounded
+        features, labels = split_features_labels(data, meta_cols=META_COLS)
         adj, = sess.run([outputs], feed_dict={
-            inputs: nonadj,
-            targets: targs,
+            inputs: features,
+            targets: labels,
         })
         # Save adjusted & non-adjusted numbers
-        import pandas as pd
-        from . import reformat
-        df_nonadj = pd.DataFrame(nonadj, columns=list(range(INPUT_SIZE)))
         df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
-        reformat.to_csv(df_nonadj, "./data/tidy_batches2.csv", tidy=True)
-        reformat.to_csv(df_adj, "./data/tidy_confounded2.csv", tidy=True)
+        OUTPUT_PATH = "./data/tidy_confounded2.csv"
+        reformat.to_csv(
+            df_adj,
+            OUTPUT_PATH,
+            tidy=True,
+            batch=data["Batch"],
+            sample=data["Sample"]
+        )
