@@ -39,9 +39,6 @@ def invert(inputs):
     return 1.0 - inputs
 
 if __name__ == "__main__":
-    # TODO: read CSV instead of from tensorflow.
-    mnist = input_data.read_data_sets("mnist_data", one_hot=True)
-
     # Autoencoder net
     with tf.name_scope("autoencoder"):
         inputs = tf.placeholder(tf.float32, [None, INPUT_SIZE])
@@ -91,6 +88,9 @@ if __name__ == "__main__":
         df = 0.001
         noiser_0 = Noise((INPUT_SIZE,), discount_factor=df)
         noiser_1 = Noise((INPUT_SIZE,), discount_factor=df)
+
+        # TODO: read CSV instead of from tensorflow.
+        mnist = input_data.read_data_sets("mnist_data", one_hot=True)
 
         # Train
         for i in range(10000):
