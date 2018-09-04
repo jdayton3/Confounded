@@ -1,10 +1,10 @@
 import pandas as pd
 
 def to_csv(df, path, tidy=False, batch=None, sample=None):
-    df = _add_info_cols(df, tidy, batch, sample)
+    df = _add_meta_cols(df, tidy, batch, sample)
     df.to_csv(path, index=False)
 
-def _add_info_cols(df, tidy=False, batch=None, sample=None):
+def _add_meta_cols(df, tidy=False, batch=None, sample=None):
     if not tidy:
         df = df.T
     df['Batch'] = _check_batch(df, batch)
