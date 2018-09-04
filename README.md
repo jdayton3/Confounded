@@ -1,6 +1,29 @@
 # Confounded
 
-Batch adjustment with adversarial autoencoders.
+## Batch adjustment with adversarial autoencoders
+
+When we measure stuff, our measurements are biased based on things other than what we're trying to measure. When we're using data that was all collected at the same time and in the same way, we can usually ignore that bias since every measurement is roughly biased in the same way. But when we want to combine data that was collected in different **batches** (maybe measured with different tools, by a different person, or with different environmental factors), we need to account for the differences, or our analysis might be messed up.
+
+In other words, say we have true values *X* and processes to measure data *A* and *B*. When we measure *X* with either process, we get measurements *X<sub>A</sub>* and *X<sub>B</sub>*.
+
+> *X<sub>A</sub>* = *A(X)*  
+> *X<sub>B</sub>* = *B(X)*  
+> *X<sub>A</sub>* &ne; *X<sub>B</sub>*
+
+Ideally we would be able to find inverse functions *A'* and *B'* to apply to our measurements so we could perfectly reconstruct *X*, but in practice, we don't really know what *X* is supposed to look like, so we can't really find those inverse functions.
+
+However, we do know that *X<sub>A</sub>* and *X<sub>B</sub>* should look the same, so we can find functions *C<sub>A</sub>* and *C<sub>B</sub>* to map *X<sub>A</sub>* and *X<sub>B</sub>* into the same *C* domain, and then we can use them in the same analysis without worrying about confounding!
+
+> *X<sub>C</sub>* = *C<sub>A</sub>(X<sub>A</sub>)*  
+> *X<sub>C</sub>* = *C<sub>B</sub>(X<sub>B</sub>)*  
+
+So we use the differences between batch A and batch B, and we use those differences to adjust the batches to look like each other.
+
+Most past methods have assumed that functions *A* and *B* are linear:
+
+> *f(X)* = *MX* + *b*
+
+But this seems to not always be the case. 
 
 ## Quick Start
 
