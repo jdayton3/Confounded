@@ -5,6 +5,7 @@ feature per column) and should have the following columns:
 
 - Sample: a unique identifier for each row
 - Batch: the batch to which each sample belongs
+- Other columns specified as `meta_cols`
 
 Every other column should be a quantitative feature.
 """
@@ -14,10 +15,12 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 class CSVData(object):
-    def __init__(self, path):
+    def __init__(self, path, meta_cols=None, predict="Batch"):
+        if meta_cols is None:
+            meta_cols = ["Batch", "Sample"]
         df = pd.read_csv(path)
-        self.labels = df["Batch"]
-        self.features = df.drop(["Batch", "Sample"], axis="columns")
+        self.labels = df[predict]
+        self.features = df.drop(meta_cols, axis="columns")
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(
             self.features, self.labels, test_size=0.2
         )
