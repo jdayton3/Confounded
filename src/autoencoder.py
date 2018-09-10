@@ -7,9 +7,9 @@ import pandas as pd
 from . import reformat
 from .load_data import split_features_labels
 
-INPUT_PATH = "./data/tidy_batches.csv"
-OUTPUT_PATH = "./data/tidy_confounded2.csv"
-META_COLS = ["Sample", "Batch"]
+INPUT_PATH = "./data/tidy_batches2.csv"
+OUTPUT_PATH = "./data/tidy_confounded_digit.csv"
+META_COLS = ["Sample", "Batch", "Digit"]
 INPUT_SIZE = 784
 NUM_TARGETS = 2
 MINIBATCH_SIZE = 100
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_csv", sess.graph)
+        writer = tf.summary.FileWriter("log/ae_digits", sess.graph)
         tf.global_variables_initializer().run()
 
         data = pd.read_csv(INPUT_PATH)
@@ -88,11 +88,13 @@ if __name__ == "__main__":
         })
         # Save adjusted & non-adjusted numbers
         df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
-        OUTPUT_PATH = "./data/tidy_confounded2.csv"
         reformat.to_csv(
             df_adj,
             OUTPUT_PATH,
             tidy=True,
-            batch=data["Batch"],
-            sample=data["Sample"]
+            meta_cols={
+                "Batch": data["Batch"],
+                "Sample": data["Sample"],
+                "Digit": data["Digit"]
+            }
         )

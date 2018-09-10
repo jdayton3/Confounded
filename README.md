@@ -8,7 +8,7 @@ Batch adjustment with adversarial autoencoders.
 
 ### Confounded dependencies
 
-1. [Anaconda](https://conda.io/docs/user-guide/install/index.html). *Note: Python 2 is currently required for Confounded, but Python 3 is used for benchmarking scripts. [An issue](https://github.com/jdayton3/Confounded/issues/1) is open to upgrade all code to the latest version of Python 3.*
+1. [Anaconda](https://conda.io/docs/user-guide/install/index.html). *Note: Python 2 is currently required for Confounded, but Python 3 is used for benchmarking scripts and for generating the matrix. [An issue](https://github.com/jdayton3/Confounded/issues/1) is open to upgrade all code to the latest version of Python 3.*
 2. [Tensorflow](https://www.tensorflow.org/install/)
 
 ### Benchmarking dependencies
