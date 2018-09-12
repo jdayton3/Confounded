@@ -3,7 +3,7 @@
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
-from csvread import CSVData
+from .csvread import CSVData
 
 def cross_validate(path, meta_cols=None, predict="Batch", times=100, folds=5, model=RandomForestClassifier):
     classifier = model()
