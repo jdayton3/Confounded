@@ -2,6 +2,14 @@
 
 ## Batch adjustment with adversarial autoencoders
 
+### In brief
+
+Data are biased based on the way they are collected. When analyzing data from multiple sources, that bias can erroneously alter the results, so it is often useful to remove source-based bias, or "batch effects."
+
+Confounded uses two artificial intelligences to adjust data for batch effects. One AI (the discriminator) looks at the data and learns to tell the differences between batches, and the other AI (the autoencoder) makes small tweaks to the data in order to fool the discriminator.
+
+### More detail
+
 When we measure stuff, our measurements are biased based on things other than what we're trying to measure. When we're using data that was all collected at the same time and in the same way, we can usually ignore that bias since every measurement is roughly biased in the same way. But when we want to combine data that was collected in different **batches** (maybe measured with different tools, by a different person, or with different environmental factors), we need to account for the differences, or our analysis might be messed up.
 
 In other words, say we have true values *X* and processes to measure data *A* and *B*. When we measure *X* with either process, we get measurements *X<sub>A</sub>* and *X<sub>B</sub>*.
@@ -23,7 +31,7 @@ Most past methods have assumed that functions *A* and *B* are linear:
 
 > *f(X)* = *MX* + *b*
 
-But this seems to not always be the case. 
+But this seems to not always be the case. Luckily, deep neural networks are great at modeling nonlinear relationships.
 
 ## Quick Start
 
