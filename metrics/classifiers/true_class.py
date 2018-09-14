@@ -5,7 +5,7 @@ from sklearn.svm import SVC
 from .random_forests import cross_validate
 
 if __name__ == "__main__":
-    FILES = ["nonadjusted", "batches2", "confounded_digit"]
+    FILES = ["nonadjusted", "batches2", "confounded_digit", "batches_balanced", "confounded_balanced"]
     for name in FILES:
         print(name)
         path = f"./data/tidy_{name}.csv"
