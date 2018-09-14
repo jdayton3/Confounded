@@ -19,7 +19,7 @@ def pngs2matrix(directory):
     for i, path in enumerate(paths):
         pixels = png.png2array(path).flatten()
         nonadjusted[:, i] = pixels
-        if i < n_pngs / 2:
+        if i % 2 == 0:
             pixels = noiser1.adjust(pixels)
         else:
             pixels = noiser2.adjust(pixels)
@@ -42,8 +42,8 @@ if __name__ == "__main__":
         "Digit": [path.split('/')[-2] for path in paths]
     })
 
-    reformat.to_csv(df, "./data/tidy_batches2.csv", meta_cols={
-        "Batch": ['A'] * 5000 + ['B'] * 5000,
+    reformat.to_csv(df, "./data/tidy_batches_balanced.csv", meta_cols={
+        "Batch": ['A', 'B'] * 5000,
         "Sample": df.T.index,
         "Digit": [path.split('/')[-2] for path in paths]
     })
