@@ -45,7 +45,6 @@ def split_features_labels(df, meta_cols=None):
             dataframe and labels are the one-hot encoded batches for
             each instance.
     """
-
     if meta_cols is None:
         meta_cols = ["Sample", "Batch"]
     features = np.array(df.drop(meta_cols, axis=1))
