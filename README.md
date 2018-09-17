@@ -50,15 +50,13 @@ python2 -m src.autoencoder
 
 To alter Confounded's behavior, adjust the following variables in `/src/autoencoder.py`:
 
-| Variable         | Description                                                                                                                                                              |
-|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUT_PATH`     | The path to the input data.                                                                                                                                              |
-| `OUTPUT_PATH`    | The path where the adjusted data should be stored.                                                                                                                       |
-| `META_COLS`      | A list of columns that should be treated as meta  data, not as features to be adjusted                                                                                   |
-| `INPUT_SIZE`     | The number of features to be adjusted. (See  [#16](https://github.com/jdayton3/Confounded/issues/16))                                                                    |
-| `NUM_TARGETS`    | The number of targets for the discriminator to  distinguish between (i.e. the number of distinct  batches, see  [#16](https://github.com/jdayton3/Confounded/issues/16)) |
-| `MINIBATCH_SIZE` | The size of the  [mini-batch](https://datascience.stackexchange.com/q/16807)  for training.                                                                              |
-| `CODE_SIZE`      | The size of the encoding layer of the autoencoder.                                                                                                                       |
+| Variable         | Description                                                                                                            |
+|------------------|------------------------------------------------------------------------------------------------------------------------|
+| `INPUT_PATH`     | The path to the input data.                                                                                            |
+| `OUTPUT_PATH`    | The path where the adjusted data should be stored.                                                                     |
+| `META_COLS`      | (Optional) A list of columns that should be treated as meta data. Defaults to all columns without floating point data. |
+| `MINIBATCH_SIZE` | The size of the [mini-batch](https://datascience.stackexchange.com/q/16807) for training.                              |
+| `CODE_SIZE`      | The size of the encoding layer of the autoencoder.                                                                     |
 
 *Note: issues [#12](https://github.com/jdayton3/Confounded/issues/12) and [#16](https://github.com/jdayton3/Confounded/issues/16) are open and will make setting these variables easier.*
 
