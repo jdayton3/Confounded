@@ -9,9 +9,7 @@ from .load_data import split_features_labels
 
 INPUT_PATH = "./data/tidy_batches_balanced.csv"
 OUTPUT_PATH = "./data/tidy_confounded_balanced.csv"
-META_COLS = ["Sample", "Batch", "Digit"]
-INPUT_SIZE = 784
-NUM_TARGETS = 2
+META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
 
@@ -21,7 +19,26 @@ def show_image(x, name="image"):
     img = tf.reshape(x, [-1, width_height, width_height, 1])
     tf.summary.image(name, img, max_outputs=1)
 
+def categorical_columns(df):
+    """Get the names of all categorical columns in the dataframe.
+
+    Arguments:
+        df {pandas.DataFrame} -- The dataframe.
+
+    Returns:
+        list -- Names of the categorical columns in the dataframe.
+    """
+    return list(df.select_dtypes(exclude=['float']).columns)
+
 if __name__ == "__main__":
+    # Get sizes & meta cols
+    data = pd.read_csv(INPUT_PATH)
+    if META_COLS is None:
+        META_COLS = categorical_columns(data)
+        print "Inferred meta columns:", META_COLS
+    INPUT_SIZE = len(data.columns) - len(META_COLS)
+    NUM_TARGETS = len(data["Batch"].unique())
+
     # Autoencoder net
     with tf.name_scope("autoencoder"):
         inputs = tf.placeholder(tf.float32, [None, INPUT_SIZE])
@@ -66,8 +83,6 @@ if __name__ == "__main__":
         writer = tf.summary.FileWriter("log/ae_balanced", sess.graph)
         tf.global_variables_initializer().run()
 
-        data = pd.read_csv(INPUT_PATH)
-
         # Train
         for i in range(10000):
             features, labels = split_features_labels(
@@ -93,8 +108,6 @@ if __name__ == "__main__":
             OUTPUT_PATH,
             tidy=True,
             meta_cols={
-                "Batch": data["Batch"],
-                "Sample": data["Sample"],
-                "Digit": data["Digit"]
+                col: data[col] for col in META_COLS
             }
         )
