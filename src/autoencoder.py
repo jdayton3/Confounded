@@ -7,8 +7,8 @@ import pandas as pd
 from . import reformat
 from .load_data import split_features_labels
 
-INPUT_PATH = "./data/tidy_batches2.csv"
-OUTPUT_PATH = "./data/tidy_confounded_digit.csv"
+INPUT_PATH = "./data/tidy_batches_balanced.csv"
+OUTPUT_PATH = "./data/tidy_confounded_balanced.csv"
 META_COLS = ["Sample", "Batch", "Digit"]
 INPUT_SIZE = 784
 NUM_TARGETS = 2
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_digits", sess.graph)
+        writer = tf.summary.FileWriter("log/ae_balanced", sess.graph)
         tf.global_variables_initializer().run()
 
         data = pd.read_csv(INPUT_PATH)
