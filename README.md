@@ -1,6 +1,26 @@
 # Confounded
 
-Batch adjustment with adversarial autoencoders.
+## Batch adjustment with adversarial autoencoders
+
+### Why use batch adjustment?
+
+Data are biased based on the way they are collected.
+When analyzing data from multiple sources, that bias can mess up the results, so it is often useful to remove source-based bias, or "batch effects."
+
+### Why use Confounded?
+
+Most batch adjusters assume that batch effects are linear and that source bias in one variable doesn't affect bias in other variables.
+However, modern analysis tools like machine learning are really good at learning nonlinear relationships, so if even very small nonlinear effects still exist after correction, modern analysis can still be biased by those effects.
+(See the [comparison to other methods](comparison-to-other-methods) for more info.)
+
+Confounded uses deep neural networks to identify and remove both linear *and* nonlinear batch effects.
+
+### How does it work?
+
+Confounded uses two neural networks to adjust data for batch effects.
+One network (the discriminator) looks at the data and learns to tell between batches, and the other network (the autoencoder) makes small tweaks to the data in order to "fool" the discriminator.
+The autoencoder also tries to keep the adjusted data as similar as possible to the original data.
+This process continues until the discriminator can't distinguish the batches and the autoencoder is faithfully reproducing the data without batch effects.
 
 ## Quick Start
 
@@ -40,7 +60,8 @@ To alter Confounded's behavior, adjust the following variables in `/src/autoenco
 
 ### Data preparation
 
-Data should be a CSV in [Tidy Data](http://vita.had.co.nz/papers/tidy-data.html) format. Additionally, the following specifications must be met:
+Data should be a CSV in [Tidy Data](http://vita.had.co.nz/papers/tidy-data.html) format.
+Additionally, the following specifications must be met:
 
 - One column is the sample ID and is called "Sample"
 - One column is the batch ID and is called "Batch"
@@ -68,7 +89,9 @@ $ python3 random_forests.py
 
 Results were obtained by creating a balanced CSV of artificially batched MNIST images, using various methods to correct for the artificial batch effects, and classifying based on batch using the scikit-learn RandomForestClassifier with default parameters.
 
-Higher accuracies represent that the classifier was still able to detect batch effects after adjustment. Since the two batches were balanced, a perfect batch adjustment should yield a classification accuracy of 0.5. We also interpret a longer training time to mean that the classifier had a more difficult time detecting differences between batches.
+Higher accuracies represent that the classifier was still able to detect batch effects after adjustment.
+Since the two batches were balanced, a perfect batch adjustment should yield a classification accuracy of 0.5.
+We also interpret a longer training time to mean that the classifier had a more difficult time detecting differences between batches.
 
 | Type of adjustment | Accuracy |   Time  |
 |:-------------------|---------:|--------:|
@@ -78,7 +101,8 @@ Higher accuracies represent that the classifier was still able to detect batch e
 
 #### ComBat
 
-We used the [ComBat](https://doi.org/10.1093/biostatistics/kxj037) implementation from the [R sva package](https://www.bioconductor.org/packages/release/bioc/html/sva.html). Our code to do this is in `src/r/combat.Rmd` and can be run using [RStudio](https://www.rstudio.com/).
+We used the [ComBat](https://doi.org/10.1093/biostatistics/kxj037) implementation from the [R sva package](https://www.bioconductor.org/packages/release/bioc/html/sva.html).
+Our code to do this is in `src/r/combat.Rmd` and can be run using [RStudio](https://www.rstudio.com/).
 
 ### Goals and Timeline
 
