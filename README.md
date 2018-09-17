@@ -13,14 +13,14 @@ Most batch adjusters assume that batch effects are linear and that source bias i
 However, modern analysis tools like machine learning are really good at learning nonlinear relationships, so if even very small nonlinear effects still exist after correction, modern analysis can still be biased by those effects.
 (See the [comparison to other methods](comparison-to-other-methods) for more info.)
 
-Confounded uses deep neural networks to identify and remove linear and nonlinear batch effects.
+Confounded uses deep neural networks to identify and remove both linear *and* nonlinear batch effects.
 
 ### How does it work?
 
-Confounded uses two artificial intelligences to adjust data for batch effects.
-One AI (the discriminator) looks at the data and learns to tell the differences between batches, and the other AI (the autoencoder) makes small tweaks to the data in order to fool the discriminator.
+Confounded uses two neural networks to adjust data for batch effects.
+One network (the discriminator) looks at the data and learns to tell between batches, and the other network (the autoencoder) makes small tweaks to the data in order to "fool" the discriminator.
 The autoencoder also tries to keep the adjusted data as similar as possible to the original data.
-This process continues until the discriminator can't distinguish the batches and the autoencoder is faithfully reproducing the original data.
+This process continues until the discriminator can't distinguish the batches and the autoencoder is faithfully reproducing the data without batch effects.
 
 ## Quick Start
 
