@@ -82,9 +82,13 @@ Code for testing the effectiveness of Confounded is located in the `/metrics` di
 To run the random forests classifier on the output data, edit the `INPUT_PATH` variable in `/metrics/classifiers/random_forests.py` to the path to the relevant CSV and run:
 
 ```bash
-$ python3 random_forests.py
-5/5  # all 5 iterations of cross-validation have completed.
-0.75 # the classifier had 75% accuracy.
+python3 -m metrics.classifiers.random_forests
+```
+
+To test how well the true classes are kept in the Confounded output, edit the `FILES`, `PREDICT`, and `META_COLS` values in `/metrics/classifiers/true_class.py` and run:
+
+```bash
+python3 -m metrics.classifiers.true_class
 ```
 
 ## More information
