@@ -24,6 +24,10 @@ This process continues until the discriminator can't distinguish the batches and
 
 ## Quick Start
 
+```bash
+# TODO, see issue #19
+```
+
 ## Installation
 
 ### Confounded dependencies
