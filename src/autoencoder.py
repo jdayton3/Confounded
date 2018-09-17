@@ -19,11 +19,22 @@ def show_image(x, name="image"):
     img = tf.reshape(x, [-1, width_height, width_height, 1])
     tf.summary.image(name, img, max_outputs=1)
 
+def categorical_columns(df):
+    """Get the names of all categorical columns in the dataframe.
+
+    Arguments:
+        df {pandas.DataFrame} -- The dataframe.
+
+    Returns:
+        list -- Names of the categorical columns in the dataframe.
+    """
+    return list(df.select_dtypes(exclude=['float']).columns)
+
 if __name__ == "__main__":
     # Get sizes & meta cols
     data = pd.read_csv(INPUT_PATH)
     if META_COLS is None:
-        META_COLS = list(data.select_dtypes(exclude=['float']).columns)
+        META_COLS = categorical_columns(data)
         print "Inferred meta columns:", META_COLS
     INPUT_SIZE = len(data.columns) - len(META_COLS)
     NUM_TARGETS = len(data["Batch"].unique())
