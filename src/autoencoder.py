@@ -39,6 +39,10 @@ if __name__ == "__main__":
     INPUT_SIZE = len(data.columns) - len(META_COLS)
     NUM_TARGETS = len(data["Batch"].unique())
 
+    # TODO: encapsulate the networks in a class or function.
+    # If it's a class, it could have a "train" method & would need to take targets and inputs as parameters.
+    # Other possible methods might include training only the autoencoder or only the discriminator.
+    # Other possible parameters might include the depth of the network, learning rate, minibatch size, & the encoding layer size.
     # Autoencoder net
     with tf.name_scope("autoencoder"):
         inputs = tf.placeholder(tf.float32, [None, INPUT_SIZE])
