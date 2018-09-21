@@ -51,6 +51,18 @@ def split_features_labels(df, meta_cols=None):
     labels = np.array(pd.get_dummies(df["Batch"]), dtype=float)
     return features, labels
 
+def list_categorical_columns(df):
+    """Get the names of all categorical columns in the dataframe.
+
+    Arguments:
+        df {pandas.DataFrame} -- The dataframe.
+
+    Returns:
+        list -- Names of the categorical columns in the dataframe.
+    """
+    return list(df.select_dtypes(exclude=['float']).columns)
+
+
 if __name__ == "__main__":
     data = RNASeq()
     print(data.data.shape)
