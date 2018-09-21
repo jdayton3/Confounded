@@ -31,8 +31,12 @@ def categorical_columns(df):
     return list(df.select_dtypes(exclude=['float']).columns)
 
 class Confounded(object):
-    def __init__(self):
+    def __init__(self, input_size, code_size, num_targets):
         self.sess = tf.Session()
+
+        self.input_size = input_size
+        self.code_size = code_size
+        self.num_targets = num_targets
 
         self.inputs = None
         self.outputs = None
@@ -50,31 +54,31 @@ class Confounded(object):
 
     def autoencoder(self):
         with tf.name_scope("autoencoder"):
-            self.inputs = tf.placeholder(tf.float32, [None, INPUT_SIZE])
+            self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
             show_image(self.inputs, "inputs")
             with tf.name_scope("encoding"):
                 encode1 = fully_connected(self.inputs, 512, activation_fn=tf.nn.relu)
                 encode1 = batch_norm(encode1)
                 encode2 = fully_connected(encode1, 256, activation_fn=tf.nn.relu)
                 encode2 = batch_norm(encode2)
-                code = fully_connected(encode2, CODE_SIZE, activation_fn=tf.nn.relu)
+                code = fully_connected(encode2, self.code_size, activation_fn=tf.nn.relu)
             with tf.name_scope("decoding"):
                 decode1 = fully_connected(code, 256, activation_fn=tf.nn.relu)
                 decode1 = batch_norm(decode1)
                 decode2 = fully_connected(decode1, 512, activation_fn=tf.nn.relu)
                 decode2 = batch_norm(decode2)
-                self.outputs = fully_connected(decode2, INPUT_SIZE, activation_fn=tf.nn.sigmoid)
+                self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
             show_image(self.outputs, "outputs")
 
     def discriminator(self):
         with tf.name_scope("discriminator"):
-            self.targets = tf.placeholder(tf.float32, [None, NUM_TARGETS])
+            self.targets = tf.placeholder(tf.float32, [None, self.num_targets])
             fc1 = fully_connected(self.outputs, 256)
             fc2 = fully_connected(fc1, 128)
             fc3 = fully_connected(fc2, 64)
             fc4 = fully_connected(fc3, 8)
             fc5 = fully_connected(fc4, 8)
-            self.classification = fully_connected(fc5, NUM_TARGETS, activation_fn=tf.nn.sigmoid)
+            self.classification = fully_connected(fc5, self.num_targets, activation_fn=tf.nn.sigmoid)
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
                 tf.summary.scalar("mse", d_loss)
@@ -107,7 +111,7 @@ if __name__ == "__main__":
     # Other possible methods might include training only the autoencoder or only the discriminator.
     # Other possible parameters might include the depth of the network, learning rate, minibatch size, & the encoding layer size.
     # Autoencoder net
-    c = Confounded()
+    c = Confounded(INPUT_SIZE, CODE_SIZE, NUM_TARGETS)
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
@@ -115,7 +119,7 @@ if __name__ == "__main__":
         tf.global_variables_initializer().run()
 
         # Train
-        for i in range(1000):
+        for i in range(100):
             features, labels = split_features_labels(
                 data.sample(MINIBATCH_SIZE, replace=True),
                 meta_cols=META_COLS
