@@ -21,14 +21,14 @@ class Confounded(object):
         self.optimizer = None
         self.d_optimizer = None
 
-        self.setup_networks()
+        self._setup_networks()
 
-    def setup_networks(self):
-        self.autoencoder()
-        self.discriminator()
-        self.loss_functions()
+    def _setup_networks(self):
+        self._setup_autoencoder()
+        self._setup_discriminator()
+        self._setup_loss_functions()
 
-    def autoencoder(self):
+    def _setup_autoencoder(self):
         with tf.name_scope("autoencoder"):
             self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
             self.show_image(self.inputs, "inputs")
@@ -46,7 +46,7 @@ class Confounded(object):
                 self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
             self.show_image(self.outputs, "outputs")
 
-    def discriminator(self):
+    def _setup_discriminator(self):
         with tf.name_scope("discriminator"):
             self.targets = tf.placeholder(tf.float32, [None, self.num_targets])
             fc1 = fully_connected(self.outputs, 256)
@@ -60,7 +60,7 @@ class Confounded(object):
                 tf.summary.scalar("mse", d_loss)
                 self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(d_loss)
 
-    def loss_functions(self):
+    def _setup_loss_functions(self):
         with tf.name_scope("discriminator"):
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
