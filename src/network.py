@@ -43,6 +43,8 @@ class Confounded(object):
                 decode1 = batch_norm(decode1)
                 decode2 = fully_connected(decode1, 512, activation_fn=tf.nn.relu)
                 decode2 = batch_norm(decode2)
+                # TODO: This shouldn't be a sigmoid because we can never make it to 0 or 1.
+                # Change it to something else and squash the output to the input's [min, max]
                 self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
             self.show_image(self.outputs, "outputs")
 
@@ -54,6 +56,7 @@ class Confounded(object):
             fc3 = fully_connected(fc2, 64)
             fc4 = fully_connected(fc3, 8)
             fc5 = fully_connected(fc4, 8)
+            # TODO: Consider changing the sigmoid + MSE to cross entropy.
             self.classification = fully_connected(fc5, self.num_targets, activation_fn=tf.nn.sigmoid)
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
