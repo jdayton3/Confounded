@@ -65,4 +65,4 @@ def list_categorical_columns(df):
 
 if __name__ == "__main__":
     data = RNASeq()
-    print(data.data.shape)
+    print((data.data.shape))
