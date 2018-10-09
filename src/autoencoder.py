@@ -17,6 +17,9 @@ CODE_SIZE = 200
 if __name__ == "__main__":
     # Get sizes & meta cols
     data = pd.read_csv(INPUT_PATH)
+    # TODO: when reading in the csv, squash everything into [0.0, 1.0]
+    # and save all the mins & maxes so we know what range to expand them
+    # back into.
     if META_COLS is None:
         META_COLS = list_categorical_columns(data)
         print "Inferred meta columns:", META_COLS
@@ -49,6 +52,7 @@ if __name__ == "__main__":
             c.targets: labels,
         })
         # Save adjusted & non-adjusted numbers
+        # TODO: expand them back out from [0.0, 1.0] into their original ranges.
         df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
         reformat.to_csv(
             df_adj,
