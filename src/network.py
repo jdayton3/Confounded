@@ -43,7 +43,9 @@ class Confounded(object):
                 decode1 = batch_norm(decode1)
                 decode2 = fully_connected(decode1, 512, activation_fn=tf.nn.relu)
                 decode2 = batch_norm(decode2)
-                self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
+                # TODO: This shouldn't be a sigmoid because we can never make it to 0 or 1.
+                # Change it to something else and squash the output to the input's [min, max]
+                self.outputs = fully_connected(decode2, self.input_size, activation_fn=None)
             self.show_image(self.outputs, "outputs")
 
     def _setup_discriminator(self):
@@ -54,11 +56,12 @@ class Confounded(object):
             fc3 = fully_connected(fc2, 64)
             fc4 = fully_connected(fc3, 8)
             fc5 = fully_connected(fc4, 8)
+            # TODO: Consider changing the sigmoid + MSE to cross entropy.
             self.classification = fully_connected(fc5, self.num_targets, activation_fn=tf.nn.sigmoid)
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
                 tf.summary.scalar("mse", d_loss)
-                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(d_loss)
+                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(d_loss)
 
     def _setup_loss_functions(self):
         with tf.name_scope("discriminator"):
@@ -77,4 +80,5 @@ class Confounded(object):
         # This assumes the input is a square image...
         width_height = int(self.input_size**0.5)
         img = tf.reshape(x, [-1, width_height, width_height, 1])
+        img = tf.clip_by_value(img, 0.0, 1.0)
         tf.summary.image(name, img, max_outputs=1)
