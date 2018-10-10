@@ -7,8 +7,8 @@ from . import reformat
 from .load_data import split_features_labels, list_categorical_columns
 from .network import Confounded
 
-INPUT_PATH = "./src/data/tidy_batches_balanced.csv"
-OUTPUT_PATH = "./src/data/tidy_confounded_balanced.csv"
+INPUT_PATH = "./data/tidy_batches_balanced.csv"
+OUTPUT_PATH = "./data/tidy_confounded_balanced.csv"
 META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
@@ -19,10 +19,15 @@ if __name__ == "__main__":
     data = pd.read_csv(INPUT_PATH)
     if META_COLS is None:
         META_COLS = list_categorical_columns(data)
-        print(("Inferred meta columns:", META_COLS))
+        print("Inferred meta columns:", META_COLS)
     INPUT_SIZE = len(data.columns) - len(META_COLS)
     NUM_TARGETS = len(data["Batch"].unique())
 
+    # TODO: encapsulate the networks in a class or function.
+    # If it's a class, it could have a "train" method & would need to take targets and inputs as parameters.
+    # Other possible methods might include training only the autoencoder or only the discriminator.
+    # Other possible parameters might include the depth of the network, learning rate, minibatch size, & the encoding layer size.
+    # Autoencoder net
     c = Confounded(INPUT_SIZE, CODE_SIZE, NUM_TARGETS)
 
     with tf.Session() as sess:
