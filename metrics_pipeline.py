@@ -8,12 +8,16 @@ calculates the following metrics:
 - what is our "" accuracy for true signal before & after?
 """
 
-INPUT_FILE = "../data/GSE40292_copy.csv"
-BATCH_COL = "Batch"
+from src.autoencoder import autoencoder
+
+INPUT_FILE = "./data/GSE40292_copy.csv"
+OUTPUT_FILE = "./Confounded" + INPUT_FILE.split("/")[-1]
 
 # TODO: Run through Confounded & Save output file
+autoencoder(INPUT_FILE, OUTPUT_FILE, iterations=100)
 
 # TODO: Classify on batch, record accuracies & time
+
 
 # TODO: Classify on true signal, record accuracies & time
 
