@@ -7,11 +7,12 @@ from . import reformat
 from .load_data import split_features_labels, list_categorical_columns
 from .network import Confounded
 
-INPUT_PATH = "./data/tidy_batches_balanced.csv"
-OUTPUT_PATH = "./data/tidy_confounded_balanced.csv"
+INPUT_PATH = "./data/GSE40292_copy.csv"
+OUTPUT_PATH = "./data/rna_seq_adj.csv"
 META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
+ITERATIONS = 10000
 
 
 if __name__ == "__main__":
@@ -34,7 +35,7 @@ if __name__ == "__main__":
         tf.global_variables_initializer().run()
 
         # Train
-        for i in range(100):
+        for i in range(ITERATIONS):
             features, labels = split_features_labels(
                 data.sample(MINIBATCH_SIZE, replace=True),
                 meta_cols=META_COLS
