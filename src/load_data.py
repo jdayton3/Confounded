@@ -27,7 +27,7 @@ class RNASeq(object):
         self.cur_ix += batch_size
         return batch
 
-def split_features_labels(df, meta_cols=None):
+def split_features_labels(df, meta_cols=None, sample=None):
     """Split a dataframe into features and labels numpy arrays.
 
     Arguments:
@@ -38,6 +38,8 @@ def split_features_labels(df, meta_cols=None):
         meta_cols {list of strings} -- Columns that should not be
             used as features to be batch-adjusted (default:
             {["Sample", "Batch"]})
+        sample {int} -- The number of rows to sample. If None, return
+            all rows. (default: {None})
 
     Returns:
         [(numpy.array, numpy.array)] -- Tuple of features and labels,
@@ -48,7 +50,14 @@ def split_features_labels(df, meta_cols=None):
     if meta_cols is None:
         meta_cols = ["Sample", "Batch"]
     features = np.array(df.drop(meta_cols, axis=1))
-    labels = np.array(pd.get_dummies(df["Batch"]), dtype=float)
+    labels = pd.get_dummies(df["Batch"])
+    labels = np.array(labels, dtype=float)
+    if sample is not None:
+        rows = pd.DataFrame(df.index).sample(sample, replace=True)[0].values.tolist()
+        features = features[rows]
+        labels = labels[rows]
+    # TODO: figure out how to get all the values represented in the labels
+    # regardless of whether they're in the current sample.
     return features, labels
 
 def list_categorical_columns(df):

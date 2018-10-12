@@ -31,14 +31,15 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_class", sess.graph)
+        writer = tf.summary.FileWriter("log/rna_seq", sess.graph)
         tf.global_variables_initializer().run()
 
         # Train
         for i in range(ITERATIONS):
             features, labels = split_features_labels(
-                data.sample(MINIBATCH_SIZE, replace=True),
-                meta_cols=META_COLS
+                data,
+                meta_cols=META_COLS,
+                sample=MINIBATCH_SIZE
             )
             summary, disc, out, _ = sess.run([merged, c.outputs, c.optimizer, c.d_optimizer], feed_dict={
                 c.inputs: features,
