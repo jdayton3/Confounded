@@ -55,10 +55,6 @@ class Confounded(object):
             fc4 = fully_connected(fc3, 8)
             fc5 = fully_connected(fc4, 8)
             self.classification = fully_connected(fc5, self.num_targets, activation_fn=tf.nn.sigmoid)
-            with tf.name_scope("optimizer"):
-                d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
-                tf.summary.scalar("mse", d_loss)
-                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(d_loss)
 
     def _setup_loss_functions(self):
         with tf.name_scope("discriminator"):
