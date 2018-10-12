@@ -21,7 +21,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
     # and save all the mins & maxes so we know what range to expand them
     # back into.
     meta_cols = list_categorical_columns(data)
-    print "Inferred meta columns:", meta_cols
+    print("Inferred meta columns:", meta_cols)
     input_size = len(data.columns) - len(meta_cols)
     num_targets = len(data["Batch"].unique())
 
