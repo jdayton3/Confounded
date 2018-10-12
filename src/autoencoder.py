@@ -12,22 +12,20 @@ OUTPUT_PATH = "./data/rna_seq_adj.csv"
 META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
-ITERATIONS = 10000
+ITERATIONS = 100
 
-
-if __name__ == "__main__":
+def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iterations=10000):
     # Get sizes & meta cols
-    data = pd.read_csv(INPUT_PATH)
+    data = pd.read_csv(input_path)
     # TODO: when reading in the csv, squash everything into [0.0, 1.0]
     # and save all the mins & maxes so we know what range to expand them
     # back into.
-    if META_COLS is None:
-        META_COLS = list_categorical_columns(data)
-        print "Inferred meta columns:", META_COLS
-    INPUT_SIZE = len(data.columns) - len(META_COLS)
-    NUM_TARGETS = len(data["Batch"].unique())
+    meta_cols = list_categorical_columns(data)
+    print "Inferred meta columns:", meta_cols
+    input_size = len(data.columns) - len(meta_cols)
+    num_targets = len(data["Batch"].unique())
 
-    c = Confounded(INPUT_SIZE, CODE_SIZE, NUM_TARGETS)
+    c = Confounded(input_size, code_size, num_targets)
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
@@ -35,11 +33,11 @@ if __name__ == "__main__":
         tf.global_variables_initializer().run()
 
         # Train
-        for i in range(ITERATIONS):
+        for i in range(iterations):
             features, labels = split_features_labels(
                 data,
-                meta_cols=META_COLS,
-                sample=MINIBATCH_SIZE
+                meta_cols=meta_cols,
+                sample=minibatch_size
             )
             summary, disc, out, _ = sess.run([merged, c.outputs, c.optimizer, c.d_optimizer], feed_dict={
                 c.inputs: features,
@@ -48,19 +46,22 @@ if __name__ == "__main__":
             writer.add_summary(summary, i)
 
         # Run the csv through confounded
-        features, labels = split_features_labels(data, meta_cols=META_COLS)
+        features, labels = split_features_labels(data, meta_cols=meta_cols)
         adj, = sess.run([c.outputs], feed_dict={
             c.inputs: features,
             c.targets: labels,
         })
         # Save adjusted & non-adjusted numbers
         # TODO: expand them back out from [0.0, 1.0] into their original ranges.
-        df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
+        df_adj = pd.DataFrame(adj, columns=list(range(input_size)))
         reformat.to_csv(
             df_adj,
-            OUTPUT_PATH,
+            output_path,
             tidy=True,
             meta_cols={
-                col: data[col] for col in META_COLS
+                col: data[col] for col in meta_cols
             }
         )
+
+if __name__ == "__main__":
+    autoencoder(INPUT_PATH, OUTPUT_PATH, MINIBATCH_SIZE, CODE_SIZE)
