@@ -12,7 +12,13 @@ OUTPUT_PATH = "./data/rna_seq_adj.csv"
 META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
-ITERATIONS = 100
+ITERATIONS = 1
+
+def _split_discrete_continuous(df):
+    discrete_types = ['object', 'int']
+    discrete = df.select_dtypes(include=discrete_types)
+    continuous = df.select_dtypes(exclude=discrete_types)
+    return discrete, continuous
 
 class Scaler(object):
     """Scale or unscale a dataframe from [min, max] <-> [0, 1]
@@ -31,12 +37,13 @@ class Scaler(object):
         Returns:
             pandas.DataFrame -- The squashed dataframe.
         """
-        # TODO: Get categorical columns & remove them from the dataframe
-        self.col_min = df.min()
-        self.col_max = df.max()
-        squashed = (df - self.col_min) / (self.col_max - self.col_min)
-        # TODO: Add categorical columns back to the dataframe
-        return squashed
+        discrete, continuous = _split_discrete_continuous(df)
+
+        self.col_min = continuous.min()
+        self.col_max = continuous.max()
+        scaled = (continuous - self.col_min) / (self.col_max - self.col_min)
+
+        return pd.concat([discrete, scaled], axis="columns")
 
     def unsquash(self, df):
         """Adjust the dataframe back to the original range.
@@ -54,8 +61,11 @@ class Scaler(object):
                 "Error: Scaler.squash() must be run "
                 "before Scaler.unsquash() can be used."
             )
-        # TODO: Adjust without making issues with categorical columns.
-        return df * (self.col_max - self.col_min) + self.col_min
+        discrete, continuous = _split_discrete_continuous(df)
+        scaled = continuous * (self.col_max - self.col_min) + self.col_min
+        if discrete.size == 0:
+            return scaled
+        return pd.concat([discrete, scaled], axis="columns")
 
 
 def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iterations=10000):
@@ -95,8 +105,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
             c.targets: labels,
         })
         # Save adjusted & non-adjusted numbers
-        # TODO: expand them back out from [0.0, 1.0] into their original ranges.
-        df_adj = pd.DataFrame(adj, columns=list(range(input_size)))
+        df_adj = pd.DataFrame(adj, columns=_split_discrete_continuous(data)[-1].columns)
         df_adj = scaler.unsquash(df_adj)
         reformat.to_csv(
             df_adj,
@@ -108,4 +117,4 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
         )
 
 if __name__ == "__main__":
-    autoencoder(INPUT_PATH, OUTPUT_PATH, MINIBATCH_SIZE, CODE_SIZE)
+    autoencoder(INPUT_PATH, OUTPUT_PATH, MINIBATCH_SIZE, CODE_SIZE, ITERATIONS)
