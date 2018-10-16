@@ -11,7 +11,7 @@ calculates the following metrics:
 from src.autoencoder import autoencoder
 
 INPUT_FILE = "./data/GSE40292_copy.csv"
-OUTPUT_FILE = "./Confounded" + INPUT_FILE.split("/")[-1]
+OUTPUT_FILE = "./data/Confounded" + INPUT_FILE.split("/")[-1]
 
 # TODO: Run through Confounded & Save output file
 autoencoder(INPUT_FILE, OUTPUT_FILE, iterations=100)

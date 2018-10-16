@@ -14,6 +14,22 @@ MINIBATCH_SIZE = 100
 CODE_SIZE = 200
 ITERATIONS = 100
 
+class Scaler(object):
+    """Scale or unscale a dataframe from [min, max] <-> [0, 1]
+    """
+    def __init__(self):
+        self.col_min = None
+        self.col_max = None
+
+    def squash(self, df):
+        self.col_min = df.min()
+        self.col_max = df.max()
+        return (df - self.col_min) / (self.col_max - self.col_min)
+
+    def unsquash(self, df):
+        return df * (self.col_max - self.col_min) + self.col_min
+
+
 def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iterations=10000):
     # Get sizes & meta cols
     data = pd.read_csv(input_path)
