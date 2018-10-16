@@ -22,11 +22,35 @@ class Scaler(object):
         self.col_max = None
 
     def squash(self, df):
+        """Adjust the dataframe to the [0, 1] range.
+
+        Arguments:
+            df {pandas.DataFrame} -- The quantitative dataframe to be
+                squashed.
+
+        Returns:
+            pandas.DataFrame -- The squashed dataframe.
+        """
         self.col_min = df.min()
         self.col_max = df.max()
         return (df - self.col_min) / (self.col_max - self.col_min)
 
     def unsquash(self, df):
+        """Adjust the dataframe back to the original range.
+
+        Arguments:
+            df {pandas.DataFrame} -- The quantitative dataframe to be
+                expanded.
+
+        Returns:
+            pandas.DataFrame -- The dataframe with each column expanded
+                to its original range.
+        """
+        if self.col_min is None or self.col_max is None:
+            raise Exception(
+                "Error: Scaler.squash() must be run "
+                "before Scaler.unsquash() can be used."
+            )
         return df * (self.col_max - self.col_min) + self.col_min
 
 
