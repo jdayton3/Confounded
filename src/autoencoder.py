@@ -31,9 +31,12 @@ class Scaler(object):
         Returns:
             pandas.DataFrame -- The squashed dataframe.
         """
+        # TODO: Get categorical columns & remove them from the dataframe
         self.col_min = df.min()
         self.col_max = df.max()
-        return (df - self.col_min) / (self.col_max - self.col_min)
+        squashed = (df - self.col_min) / (self.col_max - self.col_min)
+        # TODO: Add categorical columns back to the dataframe
+        return squashed
 
     def unsquash(self, df):
         """Adjust the dataframe back to the original range.
@@ -51,15 +54,15 @@ class Scaler(object):
                 "Error: Scaler.squash() must be run "
                 "before Scaler.unsquash() can be used."
             )
+        # TODO: Adjust without making issues with categorical columns.
         return df * (self.col_max - self.col_min) + self.col_min
 
 
 def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iterations=10000):
     # Get sizes & meta cols
     data = pd.read_csv(input_path)
-    # TODO: when reading in the csv, squash everything into [0.0, 1.0]
-    # and save all the mins & maxes so we know what range to expand them
-    # back into.
+    scaler = Scaler()
+    data = scaler.squash(data)
     meta_cols = list_categorical_columns(data)
     print("Inferred meta columns:", meta_cols)
     input_size = len(data.columns) - len(meta_cols)
@@ -94,6 +97,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
         # Save adjusted & non-adjusted numbers
         # TODO: expand them back out from [0.0, 1.0] into their original ranges.
         df_adj = pd.DataFrame(adj, columns=list(range(input_size)))
+        df_adj = scaler.unsquash(df_adj)
         reformat.to_csv(
             df_adj,
             output_path,
