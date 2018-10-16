@@ -12,9 +12,9 @@
         "editor.quickSuggestions": false,
         "editor.tabSize": 2
     },
-    "python.venvPath": "~/.local/programs/anaconda2/envs",
-    "python.envFile": "~/.local/programs/anaconda2/envs/tf",
-    "python.pythonPath": "~/.local/programs/anaconda2/envs/tf/bin/python",
+    "python.venvPath": "~/miniconda3/envs",
+    "python.envFile": "~/miniconda3/envs/py36",
+    "python.pythonPath": "~/miniconda3/envs/py36/bin/python",
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,
