@@ -73,6 +73,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
 if __name__ == "__main__":
 
     # Setting up argparse to take in arguments
+    # TODO: Add argument for output file
     parser = argparse.ArgumentParser()
     parser.add_argument('file', metavar='source-file', type=str, nargs=1,
         help='takes 1 source file for data to be passed in') 
@@ -87,6 +88,8 @@ if __name__ == "__main__":
 
     # Adding user options to code
     INPUT_PATH = args.file[0]
+    # TODO: Set OUTPUT_PATH to args output
+    # TODO: If argument is none then make smart path name based on input path
     if args.meta_cols:
         META_COLS = args.meta_cols
         # Checking that user input matches columns in the CSV if they don't program terminates
