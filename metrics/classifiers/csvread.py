@@ -16,9 +16,9 @@ from sklearn.model_selection import train_test_split
 
 class CSVData(object):
     def __init__(self, path, meta_cols=None, predict="Batch"):
-        if meta_cols is None:
-            meta_cols = ["Batch", "Sample"]
         df = pd.read_csv(path)
+        if meta_cols is None:
+            meta_cols = list(df.select_dtypes(include=['object', 'int']).columns)
         self.labels = df[predict]
         self.features = df.drop(meta_cols, axis="columns")
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(

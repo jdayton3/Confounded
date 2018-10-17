@@ -12,7 +12,7 @@ OUTPUT_PATH = "./data/rna_seq_adj.csv"
 META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
-ITERATIONS = 1
+ITERATIONS = 10000
 
 def _split_discrete_continuous(df):
     discrete_types = ['object', 'int']
@@ -82,7 +82,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/rna_seq", sess.graph)
+        writer = tf.summary.FileWriter("log/rna_seq_scaled", sess.graph)
         tf.global_variables_initializer().run()
 
         # Train

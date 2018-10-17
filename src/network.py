@@ -69,13 +69,13 @@ class Confounded(object):
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
                 tf.summary.scalar("mse", d_loss)
-                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(d_loss)
+                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(d_loss)
         with tf.name_scope("autoencoder"):
             with tf.name_scope("optimizer"):
                 mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
                 tf.summary.scalar("mse", mse)
                 loss = mse + (tf.ones_like(d_loss) - d_loss)
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(loss)
 
     def show_image(self, x, name="image"):
         # This assumes the input is a square image...
