@@ -10,7 +10,6 @@ from .network import Confounded
 
 INPUT_PATH = "./data/GSE40292_copy.csv"
 OUTPUT_PATH = "./data/rna_seq_adj_test.csv"
-META_COLS = None
 MINIBATCH_SIZE = 100
 CODE_SIZE = 200
 ITERATIONS = 1
