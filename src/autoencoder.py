@@ -1,6 +1,4 @@
 # pylint: disable=E1129,E0611,E1101
-import csv
-import sys
 import argparse
 from . import hide_warnings
 import tensorflow as tf
@@ -14,7 +12,7 @@ INPUT_PATH = "./data/GSE40292_copy.csv"
 OUTPUT_PATH = "./data/rna_seq_adj_test.csv"
 MINIBATCH_SIZE = 5
 CODE_SIZE = 200
-ITERATIONS = 1
+ITERATIONS = 10000
 
 def check_positive(value):
     ivalue = int(value)
@@ -36,7 +34,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/rna_seq_scaled", sess.graph)
+        writer = tf.summary.FileWriter("log/test_file", sess.graph)
         tf.global_variables_initializer().run()
 
         # Train
@@ -71,18 +69,15 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
         )
 
 if __name__ == "__main__":
-
     # Setting up argparse to take in arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('file', metavar='source-file', type=str, nargs=1,
-            help='takes 1 source file for data to be passed in.') 
+            help='takes 1 source file for data to be passed in.')
     parser.add_argument('-o', "--output-file", type=str, nargs=1,
             help="Location for the output file.")
-    parser.add_argument("-c", "--meta-cols", type=str, nargs='*', 
-            help="A list of columns to be treated as meta data. Defaults to all columns w/out floating point data.")
-    parser.add_argument("-m", "--minibatch-size", type=check_positive, nargs=1, 
+    parser.add_argument("-m", "--minibatch-size", type=check_positive, nargs=1,
             help="The size of the mini-batch for training. Must be positive integer.")
-    parser.add_argument("-l", "--layers", type=check_positive, nargs=1, 
+    parser.add_argument("-l", "--layers", type=check_positive, nargs=1,
             help="How many layers deep the autoencoder should be. Must be positive integer.")
 
     args = parser.parse_args()
@@ -93,16 +88,6 @@ if __name__ == "__main__":
         OUTPUT_PATH = args.output_file[0]
     else:
         OUTPUT_PATH = INPUT_PATH.rstrip(".csv") + "_confounded.csv"
-    if args.meta_cols:
-        META_COLS = args.meta_cols
-        # Checking that user input matches columns in the CSV if they don't program terminates
-        with open(INPUT_PATH, "r") as f:
-            reader = csv.reader(f)
-            column_names = next(reader)
-        for title in META_COLS:
-            if title not in column_names:
-                print("COLUMNS GIVEN DO NOT MATCH")
-                sys.exit()
     if args.minibatch_size:
         MINIBATCH_SIZE = args.minibatch_size[0]
     if args.layers:
