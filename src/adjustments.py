@@ -68,6 +68,15 @@ class Scaler(object):
 
         self.col_min = continuous.min()
         self.col_max = continuous.max()
+        already_in_range = (
+            (self.col_min >= 0.0) &
+            (self.col_min <= 1.0) &
+            (self.col_max >= 0.0) &
+            (self.col_max <= 1.0)
+        )
+        self.col_min = np.where(already_in_range, 0.0, self.col_min)
+        self.col_max = np.where(already_in_range, 1.0, self.col_max)
+
         scaled = (continuous - self.col_min) / (self.col_max - self.col_min)
 
         return pd.concat([discrete, scaled], axis="columns")
