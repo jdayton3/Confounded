@@ -13,7 +13,6 @@ from src.autoencoder import autoencoder
 INPUT_FILE = "./data/GSE40292_copy.csv"
 OUTPUT_FILE = "./data/Confounded" + INPUT_FILE.split("/")[-1]
 
-# TODO: Run through Confounded & Save output file
 autoencoder(INPUT_FILE, OUTPUT_FILE, iterations=100)
 
 # TODO: Classify on batch, record accuracies & time
