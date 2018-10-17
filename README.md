@@ -28,8 +28,6 @@ This process continues until the discriminator can't distinguish the batches and
 # TODO, see issue #19
 ```
 
-**TODO: add stuff about downloading RNA-seq data**.
-
 ## Installation
 
 ### Confounded dependencies

@@ -56,8 +56,6 @@ def split_features_labels(df, meta_cols=None, sample=None):
         rows = pd.DataFrame(df.index).sample(sample, replace=True)[0].values.tolist()
         features = features[rows]
         labels = labels[rows]
-    # TODO: figure out how to get all the values represented in the labels
-    # regardless of whether they're in the current sample.
     return features, labels
 
 def list_categorical_columns(df):
