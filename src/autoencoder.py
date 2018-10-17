@@ -75,18 +75,24 @@ if __name__ == "__main__":
     # Setting up argparse to take in arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('file', metavar='source-file', type=str, nargs=1,
-        help='takes 1 source file for data to be passed in') 
+            help='takes 1 source file for data to be passed in.') 
+    parser.add_argument('-o', "--output-file", type=str, nargs=1,
+            help="Location for the output file.")
     parser.add_argument("-c", "--meta-cols", type=str, nargs='*', 
             help="A list of columns to be treated as meta data. Defaults to all columns w/out floating point data.")
     parser.add_argument("-m", "--minibatch-size", type=check_positive, nargs=1, 
             help="The size of the mini-batch for training. Must be positive integer.")
     parser.add_argument("-l", "--layers", type=check_positive, nargs=1, 
-        help="How many layers deep the autoencoder should be. Must be positive integer.")
+            help="How many layers deep the autoencoder should be. Must be positive integer.")
 
     args = parser.parse_args()
 
     # Adding user options to code
     INPUT_PATH = args.file[0]
+    if args.output_file:
+        OUTPUT_PATH = args.output_file[0]
+    else:
+        OUTPUT_PATH = INPUT_PATH.rstrip(".csv") + "_confounded.csv"
     if args.meta_cols:
         META_COLS = args.meta_cols
         # Checking that user input matches columns in the CSV if they don't program terminates
@@ -101,5 +107,4 @@ if __name__ == "__main__":
         MINIBATCH_SIZE = args.minibatch_size[0]
     if args.layers:
         CODE_SIZE = args.layers[0]
-    print(args)
     autoencoder(INPUT_PATH, OUTPUT_PATH, MINIBATCH_SIZE, CODE_SIZE, ITERATIONS)
