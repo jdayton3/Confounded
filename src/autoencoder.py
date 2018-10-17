@@ -107,5 +107,4 @@ if __name__ == "__main__":
         MINIBATCH_SIZE = args.minibatch_size[0]
     if args.layers:
         CODE_SIZE = args.layers[0]
-    print(args)
     autoencoder(INPUT_PATH, OUTPUT_PATH, MINIBATCH_SIZE, CODE_SIZE, ITERATIONS)
