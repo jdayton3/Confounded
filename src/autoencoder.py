@@ -7,13 +7,14 @@ import tensorflow as tf
 import pandas as pd
 from . import reformat
 from .load_data import split_features_labels, list_categorical_columns
+from .adjustments import Scaler, split_discrete_continuous
 from .network import Confounded
 
-INPUT_PATH = "./src/data/tidy_batches_balanced.csv"
-OUTPUT_PATH = "./src/data/tidy_confounded_balanced.csv"
-META_COLS = None
-MINIBATCH_SIZE = 100
+INPUT_PATH = "./data/GSE40292_copy.csv"
+OUTPUT_PATH = "./data/rna_seq_adj_test.csv"
+MINIBATCH_SIZE = 5
 CODE_SIZE = 200
+ITERATIONS = 1
 
 def check_positive(value):
     ivalue = int(value)
@@ -21,58 +22,29 @@ def check_positive(value):
          raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     return ivalue
 
-if __name__ == "__main__":
-
-    # Setting up argparse to take in arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', metavar='Source_File', type=str, nargs=1,
-        help='takes 1 source file for data to be passed in') 
-    parser.add_argument("-c", "--Meta_Cols", type=str, nargs='*', 
-            help="A list of columns to be treated as meta data. Defaults to all columns w/out floating point data.")
-    parser.add_argument("-m", "--Minibatch_Size", type=check_positive, nargs=1, 
-            help="The size of the mini-batch for training. Must be positive integer.")
-    parser.add_argument("-l", "--Layers", type=check_positive, nargs=1, 
-        help="How many layers deep the autoencoder should be. Must be positive integer.")
-
-    args = parser.parse_args()
-
-    # Adding user options to code
-    INPUT_PATH += args.file[0]
-    if args.Meta_Cols:
-        META_COLS = args.Meta_Cols
-        # Checking that user input matches columns in the CSV if they don't program terminates
-        with open(INPUT_PATH, "r") as f:
-            reader = csv.reader(f)
-            columnNames = next(reader)
-        for title in META_COLS:
-            if title not in columnNames:
-                print("COLUMNS GIVEN DO NOT MATCH")
-                sys.exit()
-    if args.Minibatch_Size:
-        MINIBATCH_SIZE = args.Minibatch_Size[0]
-    if args.Layers:
-        CODE_SIZE = args.Layers[0]
-
+def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iterations=10000):
     # Get sizes & meta cols
-    data = pd.read_csv(INPUT_PATH)
-    if META_COLS is None:
-        META_COLS = list_categorical_columns(data)
-        print(("Inferred meta columns:", META_COLS))
-    INPUT_SIZE = len(data.columns) - len(META_COLS)
-    NUM_TARGETS = len(data["Batch"].unique())
+    data = pd.read_csv(input_path)
+    scaler = Scaler()
+    data = scaler.squash(data)
+    meta_cols = list_categorical_columns(data)
+    print("Inferred meta columns:", meta_cols)
+    input_size = len(data.columns) - len(meta_cols)
+    num_targets = len(data["Batch"].unique())
 
-    c = Confounded(INPUT_SIZE, CODE_SIZE, NUM_TARGETS)
+    c = Confounded(input_size, code_size, num_targets)
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/ae_class", sess.graph)
+        writer = tf.summary.FileWriter("log/rna_seq_scaled", sess.graph)
         tf.global_variables_initializer().run()
 
         # Train
-        for i in range(100):
+        for i in range(iterations):
             features, labels = split_features_labels(
-                data.sample(MINIBATCH_SIZE, replace=True),
-                meta_cols=META_COLS
+                data,
+                meta_cols=meta_cols,
+                sample=minibatch_size
             )
             summary, disc, out, _ = sess.run([merged, c.outputs, c.optimizer, c.d_optimizer], feed_dict={
                 c.inputs: features,
@@ -81,18 +53,53 @@ if __name__ == "__main__":
             writer.add_summary(summary, i)
 
         # Run the csv through confounded
-        features, labels = split_features_labels(data, meta_cols=META_COLS)
+        features, labels = split_features_labels(data, meta_cols=meta_cols)
         adj, = sess.run([c.outputs], feed_dict={
             c.inputs: features,
             c.targets: labels,
         })
         # Save adjusted & non-adjusted numbers
-        df_adj = pd.DataFrame(adj, columns=list(range(INPUT_SIZE)))
+        df_adj = pd.DataFrame(adj, columns=split_discrete_continuous(data)[-1].columns)
+        df_adj = scaler.unsquash(df_adj)
         reformat.to_csv(
             df_adj,
-            OUTPUT_PATH,
+            output_path,
             tidy=True,
             meta_cols={
-                col: data[col] for col in META_COLS
+                col: data[col] for col in meta_cols
             }
         )
+
+if __name__ == "__main__":
+
+    # Setting up argparse to take in arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', metavar='source-file', type=str, nargs=1,
+        help='takes 1 source file for data to be passed in') 
+    parser.add_argument("-c", "--meta-cols", type=str, nargs='*', 
+            help="A list of columns to be treated as meta data. Defaults to all columns w/out floating point data.")
+    parser.add_argument("-m", "--minibatch-size", type=check_positive, nargs=1, 
+            help="The size of the mini-batch for training. Must be positive integer.")
+    parser.add_argument("-l", "--layers", type=check_positive, nargs=1, 
+        help="How many layers deep the autoencoder should be. Must be positive integer.")
+
+    args = parser.parse_args()
+
+    # Adding user options to code
+    INPUT_PATH = args.file[0]
+    if args.meta_cols:
+        META_COLS = args.meta_cols
+        # Checking that user input matches columns in the CSV if they don't program terminates
+        with open(INPUT_PATH, "r") as f:
+            reader = csv.reader(f)
+            column_names = next(reader)
+        for title in META_COLS:
+            if title not in column_names:
+                print("COLUMNS GIVEN DO NOT MATCH")
+                sys.exit()
+    if args.minibatch_size:
+        MINIBATCH_SIZE = args.minibatch_size[0]
+    if args.layers:
+        CODE_SIZE = args.layers[0]
+    print(args)
+    autoencoder(INPUT_PATH, OUTPUT_PATH, MINIBATCH_SIZE, CODE_SIZE, ITERATIONS)

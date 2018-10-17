@@ -26,7 +26,7 @@ def _add_meta_cols(df, meta_cols):
     sample = meta_cols.get("Sample")
     df['Batch'] = _check_batch(df, batch)
     df['Sample'] = _check_sample(df, sample)
-    for col_name, col in list(meta_cols.items()):
+    for col_name, col in meta_cols.items():
         if col_name in ["Batch", "Sample"]:
             continue
         df[col_name] = col

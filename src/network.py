@@ -29,9 +29,12 @@ class Confounded(object):
         self._setup_loss_functions()
 
     def _setup_autoencoder(self):
+        sqrt = self.input_size ** 0.5
+        is_square_image = sqrt == int(sqrt)
         with tf.name_scope("autoencoder"):
             self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
-            self.show_image(self.inputs, "inputs")
+            if is_square_image:
+                self.show_image(self.inputs, "inputs")
             with tf.name_scope("encoding"):
                 encode1 = fully_connected(self.inputs, 512, activation_fn=tf.nn.relu)
                 encode1 = batch_norm(encode1)
@@ -44,7 +47,8 @@ class Confounded(object):
                 decode2 = fully_connected(decode1, 512, activation_fn=tf.nn.relu)
                 decode2 = batch_norm(decode2)
                 self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
-            self.show_image(self.outputs, "outputs")
+            if is_square_image:
+                self.show_image(self.outputs, "outputs")
 
     def _setup_discriminator(self):
         with tf.name_scope("discriminator"):
@@ -61,13 +65,13 @@ class Confounded(object):
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
                 tf.summary.scalar("mse", d_loss)
-                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(d_loss)
+                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(d_loss)
         with tf.name_scope("autoencoder"):
             with tf.name_scope("optimizer"):
                 mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
                 tf.summary.scalar("mse", mse)
                 loss = mse + (tf.ones_like(d_loss) - d_loss)
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(loss)
 
     def show_image(self, x, name="image"):
         # This assumes the input is a square image...
