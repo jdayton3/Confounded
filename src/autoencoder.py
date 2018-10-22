@@ -11,7 +11,7 @@ from .network import Confounded
 INPUT_PATH = "./data/GSE40292_copy.csv"
 OUTPUT_PATH = "./data/rna_seq_adj_test.csv"
 MINIBATCH_SIZE = 5
-CODE_SIZE = 200
+CODE_SIZE = 8000
 ITERATIONS = 10000
 
 def check_positive(value):
@@ -34,7 +34,7 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/test_file", sess.graph)
+        writer = tf.summary.FileWriter("log/big_network3", sess.graph)
         tf.global_variables_initializer().run()
 
         # Train
