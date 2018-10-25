@@ -32,7 +32,7 @@ This process continues until the discriminator can't distinguish the batches and
 
 ### Confounded dependencies
 
-1. [Anaconda](https://conda.io/docs/user-guide/install/index.html). *Note: Python 2 is currently required for Confounded, but Python 3 is used for benchmarking scripts and for generating the matrix. [An issue](https://github.com/jdayton3/Confounded/issues/1) is open to upgrade all code to the latest version of Python 3.*
+1. [Anaconda](https://conda.io/docs/user-guide/install/index.html) with Python 3 (*Note: the version of `h5py` that ships with Anaconda may cause some deprecation warnings.*)
 2. [Tensorflow](https://www.tensorflow.org/install/)
 
 ### Benchmarking dependencies
@@ -45,20 +45,14 @@ This process continues until the discriminator can't distinguish the batches and
 To run Confounded, run the following command:
 
 ```bash
-python2 -m src.autoencoder
+python -m src.autoencoder path/to/input_data.csv
 ```
 
-To alter Confounded's behavior, adjust the following variables in `/src/autoencoder.py`:
+To see other command line options, run:
 
-| Variable         | Description                                                                                                            |
-|------------------|------------------------------------------------------------------------------------------------------------------------|
-| `INPUT_PATH`     | The path to the input data.                                                                                            |
-| `OUTPUT_PATH`    | The path where the adjusted data should be stored.                                                                     |
-| `META_COLS`      | (Optional) A list of columns that should be treated as meta data. Defaults to all columns without floating point data. |
-| `MINIBATCH_SIZE` | The size of the [mini-batch](https://datascience.stackexchange.com/q/16807) for training.                              |
-| `CODE_SIZE`      | The size of the encoding layer of the autoencoder.                                                                     |
-
-*Note: issue [#12](https://github.com/jdayton3/Confounded/issues/12) is open and will make setting these variables easier.*
+```bash
+python -m src.autoencoder -h
+```
 
 ### Data preparation
 
@@ -79,13 +73,13 @@ Code for testing the effectiveness of Confounded is located in the `/metrics` di
 To run the random forests classifier on the output data, edit the `INPUT_PATH` variable in `/metrics/classifiers/random_forests.py` to the path to the relevant CSV and run:
 
 ```bash
-python3 -m metrics.classifiers.random_forests
+python -m metrics.classifiers.random_forests
 ```
 
 To test how well the true classes are kept in the Confounded output, edit the `FILES`, `PREDICT`, and `META_COLS` values in `/metrics/classifiers/true_class.py` and run:
 
 ```bash
-python3 -m metrics.classifiers.true_class
+python -m metrics.classifiers.true_class
 ```
 
 ## More information
