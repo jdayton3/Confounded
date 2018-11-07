@@ -48,7 +48,16 @@ To run Confounded, run the following command:
 python -m src.autoencoder path/to/input_data.csv
 ```
 
-To see other command line options, run:
+To alter Confounded's behavior, adjust the following optional variables from the command line:
+
+| Variable         | Cmd   | Description                                                                                                          |
+|------------------|-------|----------------------------------------------------------------------------------------------------------------------|
+| `output-file`    | `-o`  | Location for the output file.                                                                                        |
+| `meta-cols`      | `-c`  | A list of columns to be treated as meta data. Defaults to all columns w/out floating point data.                     |
+| `minibatch-size` | `-m`  | The size of the [mini-batch](https://datascience.stackexchange.com/q/16807) for training. Must be positive integer.  |
+| `layers`         | `-l`  | How many layers deep the autoencoder should be. Must be positive integer.                                            |
+
+To see command line options, run:
 
 ```bash
 python -m src.autoencoder -h
