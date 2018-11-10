@@ -103,8 +103,12 @@ ComBat_ignore_nonvariance <- function(matrix_, batch)
 ## Run it
 
 ```{r}
-df = read.csv("../../data/mnist_matrix.csv", header = FALSE)
-data = as.matrix(df)
-adjusted <- ComBat_ignore_nonvariance(data, c(rep(1, 5000), rep(2, 5000)))
-write.table(adjusted, "../../data/ComBat-adjusted.csv", sep = ",", row.names = FALSE, col.names = FALSE)
+# df = read.csv("../../data/mnist_matrix.csv", header = FALSE)
+p_load("tidyverse")
+df <- read_csv("../../data/dist_matching/tidy.csv")
+batch <- df$Batch
+data <- df %>% select(-Sample, -Batch) %>% t() %>% as.matrix()
+adjusted <- ComBat_ignore_nonvariance(data, batch) 
+adjusted <- adjusted %>% t() %>% as.tibble() %>% mutate(Batch = df$Batch, Sample = df$Sample)
+write.table(adjusted, "../../data/dist_matching/tidy_combat.csv", sep = ",", row.names = FALSE)
 ```
