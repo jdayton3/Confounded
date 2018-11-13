@@ -101,7 +101,12 @@ We also interpret a longer training time to mean that the classifier had a more 
 #### ComBat
 
 We used the [ComBat](https://doi.org/10.1093/biostatistics/kxj037) implementation from the [R sva package](https://www.bioconductor.org/packages/release/bioc/html/sva.html).
-Our code to do this is in `src/r/combat.Rmd` and can be run using [RStudio](https://www.rstudio.com/).
+Our code to do this is in `src/r/combat.R` and can be run using:
+
+```bash
+cd src/r
+Rscript combat.R path/to/data.csv
+```
 
 ### Goals and Timeline
 
