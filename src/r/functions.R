@@ -1,27 +1,3 @@
----
-title: "ComBat"
-author: "Jonathan Dayton"
-date: "7/25/2018"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-if (!require("pacman")) install.packages("pacman")
-p_load("tidyverse", "docstring")
-
-install_sva <- function() {
-  ## try http:// if https:// URLs are not supported
-  source("https://bioconductor.org/biocLite.R")
-  biocLite("sva")
-}
-if (!require("sva")) install_sva()
-library(sva)
-```
-
-Remove the features that don't vary, i.e. the ones where max() == min().
-
-```{r}
 varying_row_mask <- function(matrix_)
 {
   #' Get a varying row mask
@@ -98,17 +74,3 @@ ComBat_ignore_nonvariance <- function(matrix_, batch)
   matrix_[variance_mask,] <- adjusted
   matrix_
 }
-```
-
-## Run it
-
-```{r}
-# df = read.csv("../../data/mnist_matrix.csv", header = FALSE)
-p_load("tidyverse")
-df <- read_csv("../../data/dist_matching/tidy.csv")
-batch <- df$Batch
-data <- df %>% select(-Sample, -Batch) %>% t() %>% as.matrix()
-adjusted <- ComBat_ignore_nonvariance(data, batch) 
-adjusted <- adjusted %>% t() %>% as.tibble() %>% mutate(Batch = df$Batch, Sample = df$Sample)
-write.table(adjusted, "../../data/dist_matching/tidy_combat.csv", sep = ",", row.names = FALSE)
-```
