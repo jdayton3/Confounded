@@ -8,8 +8,13 @@ from .random_forests import cross_validate
 if __name__ == "__main__":
     # FILES = ["nonadjusted", "batches2", "confounded_digit", "batches_balanced", "confounded_balanced"]
     # PATHS = [f'./data/tidy_{name}.csv' for name in FILES]
-    PATHS = ["./data/GSE40292_copy.csv", "./data/rna_seq_adj.csv"]
-    PREDICT = "Clinical_diagnosis"
+    # PATHS = ["./data/GSE40292_copy.csv", "./data/rna_seq_adj.csv"]
+    PATHS = [
+        # "data/avery/GSE39582/tidy.csv",
+        "data/avery/GSE39582/tidy_combat.csv",
+        # "data/avery/GSE39582/tidy_confounded.csv",
+    ]
+    PREDICT = "Batch"
     for path in PATHS:
         print(path)
         print(

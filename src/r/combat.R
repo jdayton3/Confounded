@@ -2,8 +2,6 @@
 
 args = commandArgs(trailingOnly = TRUE)
 
-args = c("../../data/avery/GSE39582/tidy.csv")
-
 if (length(args) != 1) {
   stop("Must supply exactly one argument.\nUsage:\n$ Rscript combat.R path/to/file.csv\n")
 }
