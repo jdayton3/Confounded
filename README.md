@@ -30,6 +30,17 @@ This process continues until the discriminator can't distinguish the batches and
 
 ## Installation
 
+TL;DR:
+
+```bash
+git clone https://github.com/jdayton3/Confounded.git
+wget https://repo.anaconda.com/archive/Anaconda3-5.3.1-Linux-x86_64.sh # Or the anaconda installer for your system.
+bash Anaconda3-5.3.1-Linux-x86_64.sh # Go through the install process.
+conda create -n confounded python=3.6 r-tidyverse scikit-learn
+source activate confounded
+pip install tensorflow # or tensorflow-gpu
+```
+
 ### Confounded dependencies
 
 1. [Anaconda](https://conda.io/docs/user-guide/install/index.html) with Python 3 (*Note: the version of `h5py` that ships with Anaconda may cause some deprecation warnings.*)
