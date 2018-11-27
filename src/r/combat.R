@@ -10,8 +10,9 @@ input_path = args[1]
 # Load our stuff -----------------------------------
 
 load_stuff <- function() {
-  if (!require("pacman")) install.packages("pacman")
-  p_load("tidyverse", "docstring", "stringr")
+  for (package in c("tidyverse", "docstring", "stringr")) {
+    if (!require(package, character.only=TRUE)) { install.packages(package) }
+  }
   install_sva <- function() {
     ## try http:// if https:// URLs are not supported
     source("https://bioconductor.org/biocLite.R")
