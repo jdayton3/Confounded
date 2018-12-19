@@ -51,13 +51,18 @@ class Confounded(object):
                 self.show_image(self.outputs, "outputs")
 
     def _setup_discriminator(self):
+        keep_prob = 0.5
         with tf.name_scope("discriminator"):
             self.targets = tf.placeholder(tf.float32, [None, self.num_targets])
-            fc1 = fully_connected(self.outputs, 256)
-            fc2 = fully_connected(fc1, 128)
-            fc3 = fully_connected(fc2, 64)
-            fc4 = fully_connected(fc3, 8)
-            fc5 = fully_connected(fc4, 8)
+            fc1 = fully_connected(self.outputs, 32)
+            fc1 = tf.nn.dropout(fc1, keep_prob)
+            # fc2 = fully_connected(fc1, 128)
+            # fc2 = tf.nn.dropout(fc2, keep_prob)
+            fc3 = fully_connected(fc1, 16)
+            fc3 = tf.nn.dropout(fc3, keep_prob)
+            # fc4 = fully_connected(fc3, 8)
+            # fc4 = tf.nn.dropout(fc4, keep_prob)
+            fc5 = fully_connected(fc3, 8)
             self.classification = fully_connected(fc5, self.num_targets, activation_fn=tf.nn.sigmoid)
 
     def _setup_loss_functions(self):
@@ -65,13 +70,13 @@ class Confounded(object):
             with tf.name_scope("optimizer"):
                 d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
                 tf.summary.scalar("mse", d_loss)
-                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(d_loss)
+                self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(d_loss)
         with tf.name_scope("autoencoder"):
             with tf.name_scope("optimizer"):
                 mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
                 tf.summary.scalar("mse", mse)
                 loss = mse + (tf.ones_like(d_loss) - d_loss)
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(loss)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 
     def show_image(self, x, name="image"):
         # This assumes the input is a square image...
