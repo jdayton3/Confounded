@@ -31,7 +31,7 @@ class Confounded(object):
     def _setup_autoencoder(self):
         sqrt = self.input_size ** 0.5
         is_square_image = sqrt == int(sqrt)
-        with tf.name_scope("autoencoder"):
+        with tf.variable_scope("autoencoder"):
             self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
             if is_square_image:
                 self.show_image(self.inputs, "inputs")
@@ -76,7 +76,13 @@ class Confounded(object):
                 mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
                 tf.summary.scalar("mse", mse)
                 loss = mse + (tf.ones_like(d_loss) - d_loss)
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+                autoencoder_vars = tf.get_collection(
+                    tf.GraphKeys.TRAINABLE_VARIABLES,
+                    "autoencoder"
+                )
+                self.optimizer = tf.train.AdamOptimizer(
+                    learning_rate=0.001
+                ).minimize(loss, var_list=autoencoder_vars)
 
     def show_image(self, x, name="image"):
         # This assumes the input is a square image...
