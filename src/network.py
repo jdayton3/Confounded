@@ -31,7 +31,7 @@ class Confounded(object):
     def _setup_autoencoder(self):
         sqrt = self.input_size ** 0.5
         is_square_image = sqrt == int(sqrt)
-        with tf.name_scope("autoencoder"):
+        with tf.variable_scope("autoencoder"):
             self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
             if is_square_image:
                 self.show_image(self.inputs, "inputs")
@@ -52,7 +52,7 @@ class Confounded(object):
 
     def _setup_discriminator(self):
         keep_prob = 0.5
-        with tf.name_scope("discriminator"):
+        with tf.variable_scope("discriminator"):
             self.targets = tf.placeholder(tf.float32, [None, self.num_targets])
             fc1 = fully_connected(self.outputs, 512)
             fc1 = tf.nn.dropout(fc1, keep_prob)
