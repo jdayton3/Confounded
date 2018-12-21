@@ -10,9 +10,9 @@ from .network import Confounded
 
 INPUT_PATH = "./data/GSE40292_copy.csv"
 OUTPUT_PATH = "./data/rna_seq_adj_test.csv"
-MINIBATCH_SIZE = 5
+MINIBATCH_SIZE = 100
 CODE_SIZE = 2000
-ITERATIONS = 5000
+ITERATIONS = 250
 
 def check_positive(value):
     ivalue = int(value)
@@ -34,17 +34,42 @@ def autoencoder(input_path, output_path, minibatch_size=100, code_size=200, iter
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/frozen_layers", sess.graph)
+        writer = tf.summary.FileWriter("log/can_disc_learn", sess.graph)
         tf.global_variables_initializer().run()
 
-        # Train
+
+        # Train autoencoder
         for i in range(iterations):
             features, labels = split_features_labels(
                 data,
                 meta_cols=meta_cols,
                 sample=minibatch_size
             )
-            summary, disc, out, _ = sess.run([merged, c.outputs, c.optimizer, c.d_optimizer], feed_dict={
+            summary, disc, mse = sess.run([merged, c.outputs, c.ae_optimizer], feed_dict={
+                c.inputs: features,
+                c.targets: labels,
+            })
+            writer.add_summary(summary, i)
+        # Train discriminator
+        for i in range(i, i + iterations):
+            features, labels = split_features_labels(
+                data,
+                meta_cols=meta_cols,
+                sample=minibatch_size
+            )
+            summary, disc,  _ = sess.run([merged, c.outputs, c.d_optimizer], feed_dict={
+                c.inputs: features,
+                c.targets: labels,
+            })
+            writer.add_summary(summary, i)
+        # Train autoencoder
+        for i in range(i, i + iterations):
+            features, labels = split_features_labels(
+                data,
+                meta_cols=meta_cols,
+                sample=minibatch_size
+            )
+            summary, disc, out = sess.run([merged, c.outputs, c.optimizer], feed_dict={
                 c.inputs: features,
                 c.targets: labels,
             })
