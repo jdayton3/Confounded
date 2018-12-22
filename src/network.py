@@ -5,20 +5,26 @@
 
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected, batch_norm # pylint: disable=E0611
+from math import ceil
 
 class Confounded(object):
-    def __init__(self, input_size, code_size, num_targets, discriminator_layers=5):
+    def __init__(self, input_size, code_size, num_targets, discriminator_layers=2):
         self.sess = tf.Session()
 
         self.input_size = input_size
         self.code_size = code_size
         self.num_targets = num_targets
+        self.discriminator_layers = discriminator_layers
 
         self.inputs = None
         self.code = None
         self.outputs = None
         self.targets = None
         self.classification = None
+
+        self.d_loss = None
+        self.mse = None
+        self.loss = None
         self.optimizer = None
         self.d_optimizer = None
 
@@ -55,52 +61,43 @@ class Confounded(object):
         keep_prob = 0.5
         with tf.variable_scope("discriminator"):
             self.targets = tf.placeholder(tf.float32, [None, self.num_targets])
-            fc1 = batch_norm(self.outputs)
-            fc1 = tf.nn.dropout(fc1, keep_prob)
-            fc1 = fully_connected(fc1, 512)
-            fc1 = batch_norm(fc1)
-            fc1 = tf.nn.dropout(fc1, keep_prob)
-            fc1 = fully_connected(fc1, 256)
-            fc1 = batch_norm(fc1)
-            fc1 = tf.nn.dropout(fc1, keep_prob)
-            # fc1 = tf.nn.dropout(fc1, keep_prob)
-            # fc2 = fully_connected(fc1, 128)
-            # fc2 = tf.nn.dropout(fc2, keep_prob)
-            # fc3 = fully_connected(fc1, 128)
-            # fc3 = tf.nn.dropout(fc3, keep_prob)
-            # fc4 = fully_connected(fc3, 8)
-            # fc4 = tf.nn.dropout(fc4, keep_prob)
-            # fc5 = fully_connected(fc3, 32)
-            self.classification = fully_connected(fc1, self.num_targets, activation_fn=tf.nn.sigmoid)
+            layer = batch_norm(self.outputs)
+            layer_size = 512
+            for _ in range(self.discriminator_layers):
+                layer = fully_connected(layer, 512)
+                layer = tf.nn.dropout(layer, keep_prob)
+                layer = batch_norm(layer)
+                layer_size = int(ceil(layer_size / 2))
+            self.classification = fully_connected(layer, self.num_targets, activation_fn=tf.nn.sigmoid)
 
     def _setup_loss_functions(self):
         with tf.name_scope("discriminator"):
             with tf.name_scope("optimizer"):
-                d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
-                tf.summary.scalar("mse", d_loss)
+                self.d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
+                tf.summary.scalar("mse", self.d_loss)
                 discriminator_vars = tf.get_collection(
                     tf.GraphKeys.TRAINABLE_VARIABLES,
                     "discriminator"
                 )
                 self.d_optimizer = tf.train.AdamOptimizer(
                     learning_rate=0.001
-                ).minimize(d_loss, var_list=discriminator_vars)
+                ).minimize(self.d_loss, var_list=discriminator_vars)
         with tf.name_scope("autoencoder"):
             with tf.name_scope("optimizer"):
-                mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
-                tf.summary.scalar("mse", mse)
-                loss = mse + (tf.ones_like(d_loss) - d_loss)
-                tf.summary.scalar("dual_loss", loss)
+                self.mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
+                tf.summary.scalar("mse", self.mse)
+                self.loss = self.mse + (tf.ones_like(self.d_loss) - self.d_loss)
+                tf.summary.scalar("dual_loss", self.loss)
                 autoencoder_vars = tf.get_collection(
                     tf.GraphKeys.TRAINABLE_VARIABLES,
                     "autoencoder"
                 )
                 self.ae_optimizer = tf.train.AdamOptimizer(
                     learning_rate=0.001
-                ).minimize(mse, var_list=autoencoder_vars)
+                ).minimize(self.mse, var_list=autoencoder_vars)
                 self.optimizer = tf.train.AdamOptimizer(
                     learning_rate=0.001
-                ).minimize(loss, var_list=autoencoder_vars)
+                ).minimize(self.loss, var_list=autoencoder_vars)
 
     def show_image(self, x, name="image"):
         # This assumes the input is a square image...
