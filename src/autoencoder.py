@@ -11,7 +11,7 @@ from .network import Confounded
 
 MINIBATCH_SIZE = 100
 CODE_SIZE = 2000
-ITERATIONS = 50
+ITERATIONS = 5000
 DISCRIMINATOR_LAYERS = 2
 LOG_FILE = "./data/metrics/training.csv"
 ACTIVATION = tf.nn.relu
