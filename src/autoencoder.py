@@ -24,15 +24,17 @@ def check_positive(value):
     return ivalue
 
 class SummaryLogger(object):
-    def __init__(self, log_file, code_size, d_layers, minibatch_size, activation):
+    def __init__(self, log_file, code_size, d_layers, minibatch_size, activation, batch_col):
         self.start_time = time()
         self.log_file = log_file
         self.code_size = code_size
         self.d_layers = d_layers
         self.minibatch_size = minibatch_size
         self.activation = activation
+        self.batch_col = batch_col
         self.values = {
             "start_time": [],
+            "batch_column": [],
             "minibatch_size": [],
             "code_size": [],
             "discriminator_layers": [],
@@ -46,6 +48,7 @@ class SummaryLogger(object):
 
     def log(self, iteration, ae_loss, disc_loss, dual_loss):
         self.values["start_time"].append(self.start_time)
+        self.values["batch_column"].append(self.batch_col)
         self.values["minibatch_size"].append(self.minibatch_size)
         self.values["code_size"].append(self.code_size)
         self.values["discriminator_layers"].append(self.d_layers)
@@ -99,7 +102,8 @@ def autoencoder(input_path,
             CODE_SIZE,
             DISCRIMINATOR_LAYERS,
             MINIBATCH_SIZE,
-            ACTIVATION
+            ACTIVATION,
+            BATCH_COL
         )
         # Train
         for i in range(iterations):
