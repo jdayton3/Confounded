@@ -27,7 +27,7 @@ class RNASeq(object):
         self.cur_ix += batch_size
         return batch
 
-def split_features_labels(df, meta_cols=None, sample=None):
+def split_features_labels(df, batch_col, meta_cols=None, sample=None):
     """Split a dataframe into features and labels numpy arrays.
 
     Arguments:
@@ -37,7 +37,7 @@ def split_features_labels(df, meta_cols=None, sample=None):
     Keyword Arguments:
         meta_cols {list of strings} -- Columns that should not be
             used as features to be batch-adjusted (default:
-            {["Sample", "Batch"]})
+            {["Sample", `batch_col`]})
         sample {int} -- The number of rows to sample. If None, return
             all rows. (default: {None})
 
@@ -48,9 +48,9 @@ def split_features_labels(df, meta_cols=None, sample=None):
             each instance.
     """
     if meta_cols is None:
-        meta_cols = ["Sample", "Batch"]
+        meta_cols = ["Sample", batch_col]
     features = np.array(df.drop(meta_cols, axis=1))
-    labels = pd.get_dummies(df["Batch"])
+    labels = pd.get_dummies(df[batch_col])
     labels = np.array(labels, dtype=float)
     if sample is not None:
         rows = pd.DataFrame(df.index).sample(sample, replace=True)[0].values.tolist()

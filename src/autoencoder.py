@@ -15,6 +15,7 @@ ITERATIONS = 50
 DISCRIMINATOR_LAYERS = 2
 LOG_FILE = "./data/metrics/training.csv"
 ACTIVATION = tf.nn.relu
+BATCH_COL = "Batch"
 
 def check_positive(value):
     ivalue = int(value)
@@ -74,7 +75,9 @@ def autoencoder(input_path,
                 minibatch_size=100,
                 code_size=200,
                 iterations=10000,
-                d_layers=2):
+                d_layers=2,
+                activation=tf.nn.relu,
+                batch_col="Batch"):
     # Get sizes & meta cols
     data = pd.read_csv(input_path)
     scaler = Scaler()
@@ -82,16 +85,14 @@ def autoencoder(input_path,
     meta_cols = list_categorical_columns(data)
     print("Inferred meta columns:", meta_cols)
     input_size = len(data.columns) - len(meta_cols)
-    num_targets = len(data["Batch"].unique())
+    num_targets = len(data[batch_col].unique())
 
-    c = Confounded(input_size, code_size, num_targets, discriminator_layers=d_layers)
+    c = Confounded(input_size, code_size, num_targets, discriminator_layers=d_layers, activation=activation)
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/no_hidden_layers", sess.graph)
+        writer = tf.summary.FileWriter("log/arbitrary_batch", sess.graph)
         tf.global_variables_initializer().run()
-
-
 
         logger = SummaryLogger(
             LOG_FILE,
@@ -104,6 +105,7 @@ def autoencoder(input_path,
         for i in range(iterations):
             features, labels = split_features_labels(
                 data,
+                batch_col,
                 meta_cols=meta_cols,
                 sample=minibatch_size
             )
@@ -125,7 +127,7 @@ def autoencoder(input_path,
         logger.save()
 
         # Run the csv through confounded
-        features, labels = split_features_labels(data, meta_cols=meta_cols)
+        features, labels = split_features_labels(data, batch_col, meta_cols=meta_cols)
         adj, = sess.run([c.outputs], feed_dict={
             c.inputs: features,
             c.targets: labels,
@@ -153,6 +155,8 @@ if __name__ == "__main__":
             help="The size of the mini-batch for training. Must be positive integer.")
     parser.add_argument("-l", "--layers", type=check_positive, nargs=1,
             help="How many layers deep the discriminator should be. Must be positive integer.")
+    parser.add_argument("-b", "--batch-col", type=str, nargs=1,
+            help="Which column contains the batch to adjust for.")
 
     args = parser.parse_args()
 
@@ -166,6 +170,8 @@ if __name__ == "__main__":
         MINIBATCH_SIZE = args.minibatch_size[0]
     if args.layers:
         DISCRIMINATOR_LAYERS = args.layers[0]
+    if args.batch_col:
+        BATCH_COL = args.batch_col[0]
 
     autoencoder(
         INPUT_PATH,
@@ -173,5 +179,7 @@ if __name__ == "__main__":
         MINIBATCH_SIZE,
         CODE_SIZE,
         ITERATIONS,
-        d_layers=DISCRIMINATOR_LAYERS
+        d_layers=DISCRIMINATOR_LAYERS,
+        activation=ACTIVATION,
+        batch_col=BATCH_COL
     )

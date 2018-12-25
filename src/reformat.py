@@ -22,21 +22,13 @@ def to_csv(df, path, tidy=False, meta_cols=None):
 def _add_meta_cols(df, meta_cols):
     if meta_cols is None:
         meta_cols = {}
-    batch = meta_cols.get("Batch")
     sample = meta_cols.get("Sample")
-    df['Batch'] = _check_batch(df, batch)
     df['Sample'] = _check_sample(df, sample)
     for col_name, col in meta_cols.items():
-        if col_name in ["Batch", "Sample"]:
+        if col_name in ["Sample"]:
             continue
         df[col_name] = col
     return _reorder_cols(df, list(meta_cols.keys()))
-
-def _check_batch(df, batch):
-    if batch is None:
-        num = int(len(df) / 2)
-        return ['A'] * num + ['B'] * num
-    return batch
 
 def _check_sample(df, sample):
     if sample is None:

@@ -8,13 +8,14 @@ from tensorflow.contrib.layers import fully_connected, batch_norm # pylint: disa
 from math import ceil
 
 class Confounded(object):
-    def __init__(self, input_size, code_size, num_targets, discriminator_layers=2):
+    def __init__(self, input_size, code_size, num_targets, discriminator_layers=2, activation=tf.nn.relu):
         self.sess = tf.Session()
 
         self.input_size = input_size
         self.code_size = code_size
         self.num_targets = num_targets
         self.discriminator_layers = discriminator_layers
+        self.activation = activation
 
         self.inputs = None
         self.code = None
@@ -43,15 +44,15 @@ class Confounded(object):
             if is_square_image:
                 self.show_image(self.inputs, "inputs")
             with tf.name_scope("encoding"):
-                encode1 = fully_connected(self.inputs, 512, activation_fn=tf.nn.relu)
+                encode1 = fully_connected(self.inputs, 512, activation_fn=self.activation)
                 encode1 = batch_norm(encode1)
-                encode2 = fully_connected(encode1, 256, activation_fn=tf.nn.relu)
+                encode2 = fully_connected(encode1, 256, activation_fn=self.activation)
                 encode2 = batch_norm(encode2)
-                self.code = fully_connected(encode2, self.code_size, activation_fn=tf.nn.relu)
+                self.code = fully_connected(encode2, self.code_size, activation_fn=self.activation)
             with tf.name_scope("decoding"):
-                decode1 = fully_connected(self.code, 256, activation_fn=tf.nn.relu)
+                decode1 = fully_connected(self.code, 256, activation_fn=self.activation)
                 decode1 = batch_norm(decode1)
-                decode2 = fully_connected(decode1, 512, activation_fn=tf.nn.relu)
+                decode2 = fully_connected(decode1, 512, activation_fn=self.activation)
                 decode2 = batch_norm(decode2)
                 self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
             if is_square_image:
@@ -64,7 +65,7 @@ class Confounded(object):
             layer = batch_norm(self.outputs)
             layer_size = 512
             for _ in range(self.discriminator_layers):
-                layer = fully_connected(layer, 512)
+                layer = fully_connected(layer, 512, activation_fn=self.activation)
                 layer = tf.nn.dropout(layer, keep_prob)
                 layer = batch_norm(layer)
                 layer_size = int(ceil(layer_size / 2))
