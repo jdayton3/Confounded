@@ -161,6 +161,8 @@ if __name__ == "__main__":
             help="How many layers deep the discriminator should be. Must be positive integer.")
     parser.add_argument("-b", "--batch-col", type=str, nargs=1,
             help="Which column contains the batch to adjust for.")
+    parser.add_argument("-c", "--code-size", type=check_positive, nargs=1,
+            help="How many nodes in the code layer of the autoencoder.")
 
     args = parser.parse_args()
 
@@ -176,6 +178,8 @@ if __name__ == "__main__":
         DISCRIMINATOR_LAYERS = args.layers[0]
     if args.batch_col:
         BATCH_COL = args.batch_col[0]
+    if args.code_size:
+        CODE_SIZE = args.code_size[0]
 
     autoencoder(
         INPUT_PATH,
