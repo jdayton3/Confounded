@@ -53,6 +53,7 @@ class Scaler(object):
     def __init__(self):
         self.col_min = None
         self.col_max = None
+        self.squashed = False
 
     def squash(self, df):
         """Adjust the dataframe to the [0, 1] range.
@@ -65,7 +66,11 @@ class Scaler(object):
             pandas.DataFrame -- The squashed dataframe.
         """
         discrete, continuous = split_discrete_continuous(df)
+        scaled = self._squash_continuous(continuous)
+        self.squashed = True
+        return pd.concat([discrete, scaled], axis="columns")
 
+    def _squash_continuous(self, continuous):
         self.col_min = continuous.min()
         self.col_max = continuous.max()
         already_in_range = (
@@ -78,8 +83,7 @@ class Scaler(object):
         self.col_max = np.where(already_in_range, 1.0, self.col_max)
 
         scaled = (continuous - self.col_min) / (self.col_max - self.col_min)
-
-        return pd.concat([discrete, scaled], axis="columns")
+        return scaled
 
     def unsquash(self, df):
         """Adjust the dataframe back to the original range.
@@ -92,16 +96,37 @@ class Scaler(object):
             pandas.DataFrame -- The dataframe with each column expanded
                 to its original range.
         """
-        if self.col_min is None or self.col_max is None:
+        if not self.squashed:
             raise Exception(
                 "Error: Scaler.squash() must be run "
                 "before Scaler.unsquash() can be used."
             )
         discrete, continuous = split_discrete_continuous(df)
-        scaled = continuous * (self.col_max - self.col_min) + self.col_min
+        scaled = self._unsquash_continuous(continuous)
         if discrete.size == 0:
             return scaled
         return pd.concat([discrete, scaled], axis="columns")
+
+    def _unsquash_continuous(self, continuous):
+        scaled = continuous * (self.col_max - self.col_min) + self.col_min
+        return scaled
+
+class SigmoidScaler(Scaler):
+    """Scaler class that scales continuous values into (0.0, 1.0) using
+    the sigmoid function.
+    """
+    def _squash_continuous(self, continuous):
+        return self.__sigmoid(continuous)
+
+    def _unsquash_continuous(self, continuous):
+        return self.__logit(continuous)
+
+    def __sigmoid(self, continuous):
+        return 1.0 / (1.0 + np.exp(-continuous))
+
+    def __logit(self, continuous):
+        """inverse of sigmoid"""
+        return np.log(continuous) - np.log(1 - continuous)
 
 
 

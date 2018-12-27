@@ -6,16 +6,18 @@ import tensorflow as tf
 import pandas as pd
 from . import reformat
 from .load_data import split_features_labels, list_categorical_columns
-from .adjustments import Scaler, split_discrete_continuous
+from .adjustments import Scaler, SigmoidScaler, split_discrete_continuous
 from .network import Confounded
 
 MINIBATCH_SIZE = 100
 CODE_SIZE = 2000
 ITERATIONS = 5000
-DISCRIMINATOR_LAYERS = 2
+DISCRIMINATOR_LAYERS = 10
 LOG_FILE = "./data/metrics/training.csv"
 ACTIVATION = tf.nn.relu
 BATCH_COL = "Batch"
+EARLY_STOPPING = None
+SCALING = "linear" # or "sigmoid"
 
 def check_positive(value):
     ivalue = int(value)
@@ -24,14 +26,15 @@ def check_positive(value):
     return ivalue
 
 class SummaryLogger(object):
-    def __init__(self, log_file, code_size, d_layers, minibatch_size, activation, batch_col):
+    def __init__(self, log_file, code_size, d_layers, minibatch_size, activation, batch_col, scaling):
         self.start_time = time()
         self.log_file = log_file
         self.code_size = code_size
         self.d_layers = d_layers
         self.minibatch_size = minibatch_size
         self.activation = activation
-        self.batch_col = batch_col
+        self.batch_col = batch_col,
+        self.scaling = scaling
         self.values = {
             "start_time": [],
             "batch_column": [],
@@ -39,6 +42,7 @@ class SummaryLogger(object):
             "code_size": [],
             "discriminator_layers": [],
             "activation": [],
+            "scaling_method": [],
             "time": [],
             "iteration": [],
             "ae_loss": [],
@@ -56,6 +60,7 @@ class SummaryLogger(object):
             self.activation.__module__,
             self.activation.__name__
         ]))
+        self.values["scaling_method"] = self.scaling
         self.values["time"].append(time())
         self.values["iteration"].append(iteration)
         self.values["ae_loss"].append(ae_loss)
@@ -80,10 +85,16 @@ def autoencoder(input_path,
                 iterations=10000,
                 d_layers=2,
                 activation=tf.nn.relu,
-                batch_col="Batch"):
+                batch_col="Batch",
+                early_stopping=None,
+                scaling="linear"):
     # Get sizes & meta cols
     data = pd.read_csv(input_path)
-    scaler = Scaler()
+    scaling_options = {
+        "linear": Scaler,
+        "sigmoid": SigmoidScaler
+    }
+    scaler = scaling_options[scaling]()
     data = scaler.squash(data)
     meta_cols = list_categorical_columns(data)
     print("Inferred meta columns:", meta_cols)
@@ -103,9 +114,12 @@ def autoencoder(input_path,
             DISCRIMINATOR_LAYERS,
             MINIBATCH_SIZE,
             ACTIVATION,
-            BATCH_COL
+            BATCH_COL,
+            SCALING
         )
         # Train
+        n_since_improvement = 0
+        best_loss = float("inf")
         for i in range(iterations):
             features, labels = split_features_labels(
                 data,
@@ -127,6 +141,17 @@ def autoencoder(input_path,
             })
             writer.add_summary(summary, i)
             logger.log(i, ae_loss, disc_loss, dual_loss)
+            if dual_loss < best_loss:
+                n_since_improvement = 0
+                best_loss = dual_loss
+            else:
+                n_since_improvement += 1
+            if early_stopping is not None and n_since_improvement >= early_stopping:
+                print("No loss improvement for {} iterations. Stopping at iteration {}.".format(
+                    n_since_improvement,
+                    i
+                ))
+                break
 
         logger.save()
 
@@ -163,6 +188,10 @@ if __name__ == "__main__":
             help="Which column contains the batch to adjust for.")
     parser.add_argument("-c", "--code-size", type=check_positive, nargs=1,
             help="How many nodes in the code layer of the autoencoder.")
+    parser.add_argument("-e", "--early-stopping", type=check_positive, nargs=1,
+            help="How many iterations without improvement before stopping early. Default: None")
+    parser.add_argument("-s", "--scaling", choices=["linear", "sigmoid"],
+            help="Type of scaling to perform on the input data.")
 
     args = parser.parse_args()
 
@@ -180,6 +209,10 @@ if __name__ == "__main__":
         BATCH_COL = args.batch_col[0]
     if args.code_size:
         CODE_SIZE = args.code_size[0]
+    if args.early_stopping:
+        EARLY_STOPPING = args.early_stopping[0]
+    if args.scaling:
+        SCALING = args.scaling[0]
 
     autoencoder(
         INPUT_PATH,
@@ -189,5 +222,7 @@ if __name__ == "__main__":
         ITERATIONS,
         d_layers=DISCRIMINATOR_LAYERS,
         activation=ACTIVATION,
-        batch_col=BATCH_COL
+        batch_col=BATCH_COL,
+        early_stopping=EARLY_STOPPING,
+        scaling=SCALING
     )
