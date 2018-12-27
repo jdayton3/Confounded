@@ -15,7 +15,7 @@ ITERATIONS = 5000
 DISCRIMINATOR_LAYERS = 10
 LOG_FILE = "./data/metrics/training.csv"
 ACTIVATION = tf.nn.relu
-BATCH_COL = "Batch"
+BATCH_COL = "plate"
 EARLY_STOPPING = None
 SCALING = "linear" # or "sigmoid"
 LOSS_WEIGHTING = 1.0
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     if args.early_stopping:
         EARLY_STOPPING = args.early_stopping[0]
     if args.scaling:
-        SCALING = args.scaling[0]
+        SCALING = args.scaling
     if args.loss_weight:
         LOSS_WEIGHTING = args.loss_weight[0]
 
