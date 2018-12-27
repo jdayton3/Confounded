@@ -13,6 +13,7 @@ MINIBATCH_SIZE = 100
 CODE_SIZE = 2000
 ITERATIONS = 5000
 DISCRIMINATOR_LAYERS = 10
+AUTOENCODER_LAYERS = 2
 LOG_FILE = "./data/metrics/training.csv"
 ACTIVATION = tf.nn.relu
 BATCH_COL = "plate"
@@ -31,6 +32,7 @@ class SummaryLogger(object):
                  log_file,
                  code_size,
                  d_layers,
+                 ae_layers,
                  minibatch_size,
                  activation,
                  batch_col,
@@ -40,6 +42,7 @@ class SummaryLogger(object):
         self.log_file = log_file
         self.code_size = code_size
         self.d_layers = d_layers
+        self.ae_layers = ae_layers
         self.minibatch_size = minibatch_size
         self.activation = activation
         self.batch_col = batch_col,
@@ -51,6 +54,7 @@ class SummaryLogger(object):
             "minibatch_size": [],
             "code_size": [],
             "discriminator_layers": [],
+            "autoencoder_layers": [],
             "activation": [],
             "scaling_method": [],
             "loss_weight": [],
@@ -67,6 +71,7 @@ class SummaryLogger(object):
         self.values["minibatch_size"].append(self.minibatch_size)
         self.values["code_size"].append(self.code_size)
         self.values["discriminator_layers"].append(self.d_layers)
+        self.values["autoencoder_layers"].append(self.ae_layers)
         self.values["activation"].append(".".join([
             self.activation.__module__,
             self.activation.__name__
@@ -96,6 +101,7 @@ def autoencoder(input_path,
                 code_size=200,
                 iterations=10000,
                 d_layers=2,
+                ae_layers=2,
                 activation=tf.nn.relu,
                 batch_col="Batch",
                 early_stopping=None,
@@ -119,6 +125,7 @@ def autoencoder(input_path,
         code_size,
         num_targets,
         discriminator_layers=d_layers,
+        autoencoder_layers=ae_layers,
         activation=activation,
         disc_weghting=disc_weighting
     )
@@ -130,13 +137,14 @@ def autoencoder(input_path,
 
         logger = SummaryLogger(
             LOG_FILE,
-            CODE_SIZE,
-            DISCRIMINATOR_LAYERS,
-            MINIBATCH_SIZE,
-            ACTIVATION,
-            BATCH_COL,
-            SCALING,
-            LOSS_WEIGHTING
+            code_size,
+            d_layers,
+            ae_layers,
+            minibatch_size,
+            activation,
+            batch_col,
+            scaling,
+            disc_weighting
         )
         # Train
         n_since_improvement = 0
@@ -205,6 +213,8 @@ if __name__ == "__main__":
             help="The size of the mini-batch for training. Must be positive integer.")
     parser.add_argument("-l", "--layers", type=check_positive, nargs=1,
             help="How many layers deep the discriminator should be. Must be positive integer.")
+    parser.add_argument("-a", "--ae-layers", type=check_positive, nargs=1,
+            help="How many layers in each of the encoding and decoding portions of the autoencoder.")
     parser.add_argument("-b", "--batch-col", type=str, nargs=1,
             help="Which column contains the batch to adjust for.")
     parser.add_argument("-c", "--code-size", type=check_positive, nargs=1,
@@ -228,6 +238,8 @@ if __name__ == "__main__":
         MINIBATCH_SIZE = args.minibatch_size[0]
     if args.layers:
         DISCRIMINATOR_LAYERS = args.layers[0]
+    if args.ae_layers:
+        AUTOENCODER_LAYERS = args.ae_layers[0]
     if args.batch_col:
         BATCH_COL = args.batch_col[0]
     if args.code_size:
@@ -246,6 +258,7 @@ if __name__ == "__main__":
         CODE_SIZE,
         ITERATIONS,
         d_layers=DISCRIMINATOR_LAYERS,
+        ae_layers=AUTOENCODER_LAYERS,
         activation=ACTIVATION,
         batch_col=BATCH_COL,
         early_stopping=EARLY_STOPPING,

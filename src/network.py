@@ -13,6 +13,7 @@ class Confounded(object):
                  code_size,
                  num_targets,
                  discriminator_layers=2,
+                 autoencoder_layers=2,
                  activation=tf.nn.relu,
                  disc_weghting=1.0):
         self.sess = tf.Session()
@@ -21,6 +22,7 @@ class Confounded(object):
         self.code_size = code_size
         self.num_targets = num_targets
         self.discriminator_layers = discriminator_layers
+        self.autoencoder_layers = autoencoder_layers
         self.activation = activation
         self.disc_weighting = disc_weghting
 
@@ -51,17 +53,20 @@ class Confounded(object):
             if is_square_image:
                 self.show_image(self.inputs, "inputs")
             with tf.name_scope("encoding"):
-                encode1 = fully_connected(self.inputs, 512, activation_fn=self.activation)
-                encode1 = batch_norm(encode1)
-                encode2 = fully_connected(encode1, 256, activation_fn=self.activation)
-                encode2 = batch_norm(encode2)
-                self.code = fully_connected(encode2, self.code_size, activation_fn=self.activation)
+                layer = self.inputs
+                n_nodes = 512
+                for i in range(self.autoencoder_layers):
+                    layer = fully_connected(layer, n_nodes, activation_fn=self.activation)
+                    layer = batch_norm(layer)
+                    n_nodes = int(ceil(n_nodes / 2))
+                self.code = fully_connected(layer, self.code_size, activation_fn=self.activation)
+                layer = self.code
             with tf.name_scope("decoding"):
-                decode1 = fully_connected(self.code, 256, activation_fn=self.activation)
-                decode1 = batch_norm(decode1)
-                decode2 = fully_connected(decode1, 512, activation_fn=self.activation)
-                decode2 = batch_norm(decode2)
-                self.outputs = fully_connected(decode2, self.input_size, activation_fn=tf.nn.sigmoid)
+                for i in range(self.autoencoder_layers):
+                    n_nodes *= 2
+                    layer = fully_connected(layer, n_nodes, activation_fn=self.activation)
+                    layer = batch_norm(layer)
+                self.outputs = fully_connected(layer, self.input_size, activation_fn=tf.nn.sigmoid)
             if is_square_image:
                 self.show_image(self.outputs, "outputs")
 
