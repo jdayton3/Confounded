@@ -18,6 +18,7 @@ ACTIVATION = tf.nn.relu
 BATCH_COL = "Batch"
 EARLY_STOPPING = None
 SCALING = "linear" # or "sigmoid"
+LOSS_WEIGHTING = 1.0
 
 def check_positive(value):
     ivalue = int(value)
@@ -26,7 +27,15 @@ def check_positive(value):
     return ivalue
 
 class SummaryLogger(object):
-    def __init__(self, log_file, code_size, d_layers, minibatch_size, activation, batch_col, scaling):
+    def __init__(self,
+                 log_file,
+                 code_size,
+                 d_layers,
+                 minibatch_size,
+                 activation,
+                 batch_col,
+                 scaling,
+                 loss_weight):
         self.start_time = time()
         self.log_file = log_file
         self.code_size = code_size
@@ -35,6 +44,7 @@ class SummaryLogger(object):
         self.activation = activation
         self.batch_col = batch_col,
         self.scaling = scaling
+        self.loss_weight = loss_weight
         self.values = {
             "start_time": [],
             "batch_column": [],
@@ -43,6 +53,7 @@ class SummaryLogger(object):
             "discriminator_layers": [],
             "activation": [],
             "scaling_method": [],
+            "loss_weight": [],
             "time": [],
             "iteration": [],
             "ae_loss": [],
@@ -60,7 +71,8 @@ class SummaryLogger(object):
             self.activation.__module__,
             self.activation.__name__
         ]))
-        self.values["scaling_method"] = self.scaling
+        self.values["scaling_method"].append(self.scaling)
+        self.values["loss_weight"].append(self.loss_weight)
         self.values["time"].append(time())
         self.values["iteration"].append(iteration)
         self.values["ae_loss"].append(ae_loss)
@@ -87,7 +99,8 @@ def autoencoder(input_path,
                 activation=tf.nn.relu,
                 batch_col="Batch",
                 early_stopping=None,
-                scaling="linear"):
+                scaling="linear",
+                disc_weighting=1.0):
     # Get sizes & meta cols
     data = pd.read_csv(input_path)
     scaling_options = {
@@ -101,7 +114,14 @@ def autoencoder(input_path,
     input_size = len(data.columns) - len(meta_cols)
     num_targets = len(data[batch_col].unique())
 
-    c = Confounded(input_size, code_size, num_targets, discriminator_layers=d_layers, activation=activation)
+    c = Confounded(
+        input_size,
+        code_size,
+        num_targets,
+        discriminator_layers=d_layers,
+        activation=activation,
+        disc_weghting=disc_weighting
+    )
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
@@ -115,7 +135,8 @@ def autoencoder(input_path,
             MINIBATCH_SIZE,
             ACTIVATION,
             BATCH_COL,
-            SCALING
+            SCALING,
+            LOSS_WEIGHTING
         )
         # Train
         n_since_improvement = 0
@@ -192,6 +213,8 @@ if __name__ == "__main__":
             help="How many iterations without improvement before stopping early. Default: None")
     parser.add_argument("-s", "--scaling", choices=["linear", "sigmoid"],
             help="Type of scaling to perform on the input data.")
+    parser.add_argument("-w", "--loss-weight", type=float, nargs=1,
+            help="Weight applied to the discriminator loss when training the autoencoder.")
 
     args = parser.parse_args()
 
@@ -213,6 +236,8 @@ if __name__ == "__main__":
         EARLY_STOPPING = args.early_stopping[0]
     if args.scaling:
         SCALING = args.scaling[0]
+    if args.loss_weight:
+        LOSS_WEIGHTING = args.loss_weight[0]
 
     autoencoder(
         INPUT_PATH,
@@ -224,5 +249,6 @@ if __name__ == "__main__":
         activation=ACTIVATION,
         batch_col=BATCH_COL,
         early_stopping=EARLY_STOPPING,
-        scaling=SCALING
+        scaling=SCALING,
+        disc_weighting=LOSS_WEIGHTING
     )

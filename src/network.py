@@ -8,7 +8,13 @@ from tensorflow.contrib.layers import fully_connected, batch_norm # pylint: disa
 from math import ceil
 
 class Confounded(object):
-    def __init__(self, input_size, code_size, num_targets, discriminator_layers=2, activation=tf.nn.relu):
+    def __init__(self,
+                 input_size,
+                 code_size,
+                 num_targets,
+                 discriminator_layers=2,
+                 activation=tf.nn.relu,
+                 disc_weghting=1.0):
         self.sess = tf.Session()
 
         self.input_size = input_size
@@ -16,6 +22,7 @@ class Confounded(object):
         self.num_targets = num_targets
         self.discriminator_layers = discriminator_layers
         self.activation = activation
+        self.disc_weighting = disc_weghting
 
         self.inputs = None
         self.code = None
@@ -87,7 +94,9 @@ class Confounded(object):
             with tf.name_scope("optimizer"):
                 self.mse = tf.losses.mean_squared_error(self.inputs, self.outputs)
                 tf.summary.scalar("mse", self.mse)
-                self.loss = self.mse + (tf.ones_like(self.d_loss) - self.d_loss)
+                self.loss = self.mse + (
+                    tf.ones_like(self.d_loss) - self.disc_weighting * self.d_loss
+                )
                 tf.summary.scalar("dual_loss", self.loss)
                 autoencoder_vars = tf.get_collection(
                     tf.GraphKeys.TRAINABLE_VARIABLES,
