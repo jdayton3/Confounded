@@ -11,7 +11,7 @@ from .network import Confounded
 
 MINIBATCH_SIZE = 100
 CODE_SIZE = 2000
-ITERATIONS = 5000
+ITERATIONS = 10000
 DISCRIMINATOR_LAYERS = 10
 AUTOENCODER_LAYERS = 2
 LOG_FILE = "./data/metrics/training.csv"
@@ -30,6 +30,8 @@ def check_positive(value):
 class SummaryLogger(object):
     def __init__(self,
                  log_file,
+                 input_path,
+                 output_path,
                  code_size,
                  d_layers,
                  ae_layers,
@@ -40,16 +42,20 @@ class SummaryLogger(object):
                  loss_weight):
         self.start_time = time()
         self.log_file = log_file
+        self.input_path = input_path
+        self.output_path = output_path
         self.code_size = code_size
         self.d_layers = d_layers
         self.ae_layers = ae_layers
         self.minibatch_size = minibatch_size
         self.activation = activation
-        self.batch_col = batch_col,
+        self.batch_col = batch_col
         self.scaling = scaling
         self.loss_weight = loss_weight
         self.values = {
             "start_time": [],
+            "input_path": [],
+            "output_path": [],
             "batch_column": [],
             "minibatch_size": [],
             "code_size": [],
@@ -67,6 +73,8 @@ class SummaryLogger(object):
 
     def log(self, iteration, ae_loss, disc_loss, dual_loss):
         self.values["start_time"].append(self.start_time)
+        self.values["input_path"].append(self.input_path)
+        self.values["output_path"].append(self.output_path)
         self.values["batch_column"].append(self.batch_col)
         self.values["minibatch_size"].append(self.minibatch_size)
         self.values["code_size"].append(self.code_size)
@@ -132,11 +140,13 @@ def autoencoder(input_path,
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/arbitrary_batch", sess.graph)
+        writer = tf.summary.FileWriter("log/mnist", sess.graph)
         tf.global_variables_initializer().run()
 
         logger = SummaryLogger(
             LOG_FILE,
+            input_path,
+            output_path,
             code_size,
             d_layers,
             ae_layers,
