@@ -41,23 +41,28 @@ def baseline(path, column):
 
 if __name__ == "__main__":
     PATHS = [
-        "data/avery/GSE37199/clinical.csv",
-        "data/avery/GSE37199/clinical_confounded.csv",
-        "data/avery/GSE37199/tidy_combat.csv",
+        # "data/avery/GSE37199/clinical.csv",
+        # "data/avery/GSE37199/clinical_confounded.csv",
+        # "data/avery/GSE37199/tidy_combat.csv",
+        "data/mnist/noisy.csv",
+        "data/mnist/noisy_combat.csv",
+        "data/output/mnist/mnist.csv",
+        "../Modified-BatchEffectRemoval/output.csv"
     ]
     LEARNERS = [
         (RandomForestClassifier, {}),
-        (MLPClassifier, {"hidden_layer_sizes": tuple([5]*10), "max_iter": 1000}),
-        (GaussianNB, {}),
-        (KNeighborsClassifier, {}),
-        (SVC, {"kernel": "rbf"})
+        # (MLPClassifier, {"hidden_layer_sizes": tuple([5]*10), "max_iter": 1000}),
+        # (GaussianNB, {}),
+        # (KNeighborsClassifier, {}),
+        # (SVC, {"kernel": "rbf"})
     ]
     PREDICT = [
         'Batch',
-        'centre',
-        'plate',
-        'replicate',
-        'Stage',
+        'Digit'
+        # 'centre',
+        # 'plate',
+        # 'replicate',
+        # 'Stage',
     ]
 
     logger = Logger("./data/metrics/accuracies.csv")
