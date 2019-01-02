@@ -4,6 +4,11 @@ output_path="${output_dir}mnist.csv"
 
 mkdir -p $output_dir
 
+log_folder="./data/metrics/"
+mkdir -p $log_folder
+
+log_file="${log_folder}mnist.csv"
+
 python -m src.autoencoder $input_path \
     --output-file $output_path \
     --layers 10 \
@@ -11,6 +16,7 @@ python -m src.autoencoder $input_path \
     --batch-col "Batch" \
     --code-size 200 \
     --scaling linear \
-    --loss-weight 1
+    --loss-weight 1 \
+    --log-file $log_file
 
 bash "../scripts/mnist.py"

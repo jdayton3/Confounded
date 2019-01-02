@@ -4,6 +4,11 @@ input_path="${input_folder}clinical.csv"
 output_folder="./data/output/ae_layers/"
 mkdir -p $output_folder
 
+log_folder="./data/metrics/"
+mkdir -p $log_folder
+
+log_file="${log_folder}ae_layers.csv"
+
 source activate py36
 python --version
 
@@ -13,5 +18,6 @@ do
         --output-file ${output_folder}ae_layers_${layer}.csv \
         --layers 10 \
         --batch-col "plate" \
-        --ae-layers $layer
+        --ae-layers $layer \
+        --log-file $log_file
 done

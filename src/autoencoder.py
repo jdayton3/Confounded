@@ -1,6 +1,6 @@
 # pylint: disable=E1129,E0611,E1101
 import argparse
-from time import time
+import datetime
 from . import hide_warnings
 import tensorflow as tf
 import pandas as pd
@@ -14,7 +14,7 @@ CODE_SIZE = 2000
 ITERATIONS = 10000
 DISCRIMINATOR_LAYERS = 10
 AUTOENCODER_LAYERS = 2
-LOG_FILE = "./data/metrics/training.csv"
+LOG_FILE = "./data/metrics/log.csv"
 ACTIVATION = tf.nn.relu
 BATCH_COL = "plate"
 EARLY_STOPPING = None
@@ -26,6 +26,10 @@ def check_positive(value):
     if ivalue < 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     return ivalue
+
+def now():
+    """Return the current time in iso format"""
+    return datetime.datetime.now().isoformat()
 
 class SummaryLogger(object):
     def __init__(self,
@@ -40,7 +44,7 @@ class SummaryLogger(object):
                  batch_col,
                  scaling,
                  loss_weight):
-        self.start_time = time()
+        self.start_time = now()
         self.log_file = log_file
         self.input_path = input_path
         self.output_path = output_path
@@ -86,7 +90,7 @@ class SummaryLogger(object):
         ]))
         self.values["scaling_method"].append(self.scaling)
         self.values["loss_weight"].append(self.loss_weight)
-        self.values["time"].append(time())
+        self.values["time"].append(now())
         self.values["iteration"].append(iteration)
         self.values["ae_loss"].append(ae_loss)
         self.values["disc_loss"].append(disc_loss)
@@ -114,7 +118,8 @@ def autoencoder(input_path,
                 batch_col="Batch",
                 early_stopping=None,
                 scaling="linear",
-                disc_weighting=1.0):
+                disc_weighting=1.0,
+                log_file="log.csv"):
     # Get sizes & meta cols
     data = pd.read_csv(input_path)
     scaling_options = {
@@ -144,7 +149,7 @@ def autoencoder(input_path,
         tf.global_variables_initializer().run()
 
         logger = SummaryLogger(
-            LOG_FILE,
+            log_file,
             input_path,
             output_path,
             code_size,
@@ -235,6 +240,8 @@ if __name__ == "__main__":
             help="Type of scaling to perform on the input data.")
     parser.add_argument("-w", "--loss-weight", type=float, nargs=1,
             help="Weight applied to the discriminator loss when training the autoencoder.")
+    parser.add_argument("-f", "--log-file", type=str, nargs=1,
+            help="Path to file to log results.")
 
     args = parser.parse_args()
 
@@ -260,6 +267,8 @@ if __name__ == "__main__":
         SCALING = args.scaling
     if args.loss_weight:
         LOSS_WEIGHTING = args.loss_weight[0]
+    if args.log_file:
+        LOG_FILE = args.log_file[0]
 
     autoencoder(
         INPUT_PATH,
@@ -273,5 +282,6 @@ if __name__ == "__main__":
         batch_col=BATCH_COL,
         early_stopping=EARLY_STOPPING,
         scaling=SCALING,
-        disc_weighting=LOSS_WEIGHTING
+        disc_weighting=LOSS_WEIGHTING,
+        log_file=LOG_FILE
     )

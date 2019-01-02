@@ -4,6 +4,11 @@ input_path="${input_folder}clinical.csv"
 output_folder="./data/output/loss_weight/"
 mkdir -p $output_folder
 
+log_folder="./data/metrics/"
+mkdir -p $log_folder
+
+log_file="${log_folder}loss_weight.csv"
+
 source activate py36
 python --version
 
@@ -14,5 +19,6 @@ do
         --output-file ${output_folder}disc_weight_${weight}.csv \
         --layers 10 \
         --batch-col "plate" \
-        --loss-weight $weight
+        --loss-weight $weight \
+        --log-file $log_file
 done
