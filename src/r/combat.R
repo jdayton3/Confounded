@@ -9,21 +9,8 @@ input_path = args[1]
 
 # Load our stuff -----------------------------------
 
-load_stuff <- function() {
-  for (package in c("tidyverse", "docstring", "stringr")) {
-    if (!require(package, character.only=TRUE)) { install.packages(package) }
-  }
-  install_sva <- function() {
-    ## try http:// if https:// URLs are not supported
-    source("https://bioconductor.org/biocLite.R")
-    biocLite("sva")
-  }
-  if (!require("sva")) install_sva()
-  library(sva)
-  source("functions.R")
-}
-suppressMessages(load_stuff())
-
+source("functions.R")
+suppressMessages(library(stringr))
 
 # Get the output path ---------------------------
 
@@ -33,17 +20,4 @@ output_path <- str_replace_all(input_path, "(^.*)(\\.csv$)", "\\1_combat\\2")
 # Run ComBat ------------------------------------
 
 df <- read_csv(input_path)
-batch <- df$Batch
-
-## Find the categorical columns & separate them
-
-categorical <- df %>%
-  select_if(~!is.numeric(.) || is.integer(.))
-quantitative <- df %>%
-  select_if(~is.numeric(.) && !is.integer(.))
-
-## Run ComBat on the quantitative columns
-adjusted <- quantitative %>% t() %>% as.matrix() %>% ComBat_ignore_nonvariance(batch) %>% t() %>% as.tibble()
-
-## Stick them back together & save them
-bind_cols(categorical, adjusted) %>% write_csv(output_path)
+batch_adjust_tidy(df, batch_col="Batch", adjuster=ComBat_ignore_nonvariance) %>% write_csv(output_path)

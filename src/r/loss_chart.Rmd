@@ -1,0 +1,73 @@
+---
+title: "Loss Charts"
+author: "Jonathan Dayton"
+date: "12/27/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) install.packages("pacman"); library(pacman)
+p_load("tidyverse", "gridExtra", "png")
+```
+
+# Load data
+
+```{r}
+df <- read_csv("../../training.csv")
+```
+
+# Make plots
+
+```{r}
+df %>% filter(code_size > 2000) %>%
+  ggplot(aes(x=ae_loss, y=disc_loss, color=code_size, alpha=0.05, size=iteration)) +
+  geom_point()
+```
+
+```{r}
+df %>% mutate(start_time = as.factor(start_time)) %>%
+  filter(iteration == 4999, code_size == 2000) %>%
+  group_by()
+  ggplot(aes(x = discriminator_layers, y = ae_loss)) +
+  geom_point() +
+  geom_smooth()
+```
+
+```{r}
+df %>% filter(iteration == 4999) %>%
+  arrange(dual_loss)
+```
+
+```{r}
+
+run <- df %>% filter(discriminator_layers == 9) 
+
+run %>%
+  # filter(iteration > 4000) %>%
+  ggplot(aes(x = iteration, y = dual_loss)) +
+  geom_line() +
+  geom_smooth() +
+  labs(title = "Dual Loss", y = "Loss", x = "Iteration")
+
+run %>%
+  ggplot(aes(x = iteration, y = ae_loss)) +
+  geom_line() +
+  geom_smooth() +
+  labs(title = "Autoencoder Loss", y = "Loss", x = "Iteration")
+
+run %>%
+  ggplot(aes(x = iteration, y = disc_loss)) +
+  geom_line() +
+  geom_smooth() +
+  labs(title = "Discriminator Loss", y = "Loss", x = "Iteration")
+```
+
+## MNIST Grid
+
+```{r}
+paths <- paste("../../data/output/mnist/", list.files("../../data/output/mnist/", pattern = "\\.png$"), sep="")
+pngs <- lapply(paths, readPNG)
+gl <- lapply(pngs, grid::rasterGrob)
+grid.arrange(grobs=gl, ncol=4)
+```
