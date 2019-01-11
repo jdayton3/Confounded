@@ -1,0 +1,38 @@
+---
+title: "MSE & MMD"
+author: "Jonathan Dayton"
+date: "1/4/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) install.packages("pacman"); library(pacman)
+p_load("tidyverse")
+source("functions.R")
+```
+
+```{r}
+mse <- read_csv("../../data/metrics/mse.csv")
+mmd <- read_csv("../../data/metrics/mmd.csv")
+
+order <- c("Unadjusted", "Scale", "ComBat", "Confounded")
+
+metrics <- rbind(mse, mmd) %>% mutate(adjuster = factor(adjuster, levels = order))
+```
+
+
+```{r}
+
+metrics %>% 
+  filter(metric == "MSE") %>%
+  ggplot(aes(x = metric, y = value, fill = metric)) +
+  geom_bar(stat = "identity") +
+  facet_grid(dataset ~ adjuster, scales = "free_y")
+
+metrics %>% 
+  filter(metric == "MMD") %>%
+  ggplot(aes(x = metric, y = value, fill = metric)) +
+  geom_bar(stat = "identity") +
+  facet_grid(dataset ~ adjuster, scales = "free_y")
+```
