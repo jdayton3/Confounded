@@ -11,7 +11,7 @@ if __name__ == "__main__":
     unadjusted = pd.read_csv("./data/mnist/unadjusted.csv")
     noisy = pd.read_csv("./data/mnist/noisy.csv")
     combat = pd.read_csv("./data/mnist/noisy_combat.csv")
-    confounded = pd.read_csv("./data/output/mnist/mnist.csv")
+    confounded = pd.read_csv("./data/mnist/noisy_confounded.csv")
 
     dataframes = [
         unadjusted,
