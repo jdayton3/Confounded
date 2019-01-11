@@ -1,6 +1,7 @@
 # pylint: disable=E1129,E0611,E1101
 import argparse
 import datetime
+import random
 from . import hide_warnings
 import tensorflow as tf
 import pandas as pd
@@ -11,7 +12,7 @@ from .network import Confounded
 
 MINIBATCH_SIZE = 100
 CODE_SIZE = 2000
-ITERATIONS = 10000
+ITERATIONS = 1000
 DISCRIMINATOR_LAYERS = 10
 AUTOENCODER_LAYERS = 2
 LOG_FILE = "./data/metrics/log.csv"
@@ -30,6 +31,15 @@ def check_positive(value):
 def now():
     """Return the current time in iso format"""
     return datetime.datetime.now().isoformat()
+
+def should_train_dual(i, tot_iterations):
+    """For a given iteration, should we train ae & disc?
+
+    Cools down over time.
+    """
+    probability = 1.0 - i / tot_iterations
+    probability = 0.1
+    return random.uniform(0.0, 1.0) < probability
 
 class SummaryLogger(object):
     def __init__(self,
@@ -145,7 +155,7 @@ def autoencoder(input_path,
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/mnist", sess.graph)
+        writer = tf.summary.FileWriter("log/bladder-figs", sess.graph)
         tf.global_variables_initializer().run()
 
         logger = SummaryLogger(
@@ -164,25 +174,38 @@ def autoencoder(input_path,
         # Train
         n_since_improvement = 0
         best_loss = float("inf")
-        for i in range(iterations):
+
+        sequential_iterations = iterations * 2
+        for i in range(sequential_iterations):
             features, labels = split_features_labels(
                 data,
                 batch_col,
                 meta_cols=meta_cols,
                 sample=minibatch_size
             )
-            summary, disc_loss, ae_loss, dual_loss, _, _, _ = sess.run([
+            if i < iterations / 2:
+                optimizer = c.ae_optimizer
+            elif i < iterations:
+                optimizer = c.d_optimizer
+            else:
+                optimizer = c.optimizer
+            summary, disc_loss, ae_loss, dual_loss, _, _ = sess.run([
                 merged,
                 c.d_loss,
                 c.mse,
                 c.loss,
                 c.outputs,
-                c.optimizer,
-                c.d_optimizer
+                optimizer,
             ], feed_dict={
                 c.inputs: features,
                 c.targets: labels,
             })
+
+            if i > iterations or should_train_dual(i, sequential_iterations):
+                sess.run([c.optimizer, c.d_optimizer], feed_dict={
+                    c.inputs: features, c.targets: labels
+                })
+
             writer.add_summary(summary, i)
             logger.log(i, ae_loss, disc_loss, dual_loss)
             if dual_loss < best_loss:
