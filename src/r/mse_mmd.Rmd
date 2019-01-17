@@ -26,13 +26,15 @@ metrics <- rbind(mse, mmd) %>% mutate(adjuster = factor(adjuster, levels = order
 
 metrics %>% 
   filter(metric == "MSE") %>%
-  ggplot(aes(x = metric, y = value, fill = metric)) +
+  ggplot(aes(x = metric, y = value)) +
   geom_bar(stat = "identity") +
-  facet_grid(dataset ~ adjuster, scales = "free_y")
+  facet_grid(dataset ~ adjuster, scales = "free_y") +
+  labs(y = "MSE", x = "")
 
 metrics %>% 
   filter(metric == "MMD") %>%
-  ggplot(aes(x = metric, y = value, fill = metric)) +
+  ggplot(aes(x = metric, y = value)) +
   geom_bar(stat = "identity") +
-  facet_grid(dataset ~ adjuster, scales = "free_y")
+  facet_grid(dataset ~ adjuster, scales = "free_y") +
+  labs(y = "MMD", x = "")
 ```

@@ -27,13 +27,13 @@ df %>% filter(col_type == "batch_col") %>%
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank()) +
-  labs(title = "Cross-validated batch prediction accuracies after adjustment")
+  labs(y = "Batch Classification Accuracy")
 
 df %>% filter(col_type == "true_class_col") %>%
   ggplot(aes(x = model, y = accuracy, fill = model)) +
   geom_boxplot() +
   facet_grid(dataset ~ adjuster, scales = "free_y") +
-  labs(title = "Cross-validated true class prediction accuracies after adjustment") +
+  labs(y = "True Class Classification Accuracy") +
   theme_bw(base_size = 12) +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
