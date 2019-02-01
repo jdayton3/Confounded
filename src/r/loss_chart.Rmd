@@ -8,40 +8,66 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 if (!require("pacman")) install.packages("pacman"); library(pacman)
-p_load("tidyverse", "gridExtra", "png")
+p_load("tidyverse", "gridExtra", "png", "stringr")
 ```
 
 # Load data
 
 ```{r}
-df <- read_csv("../../training.csv")
+training_log_files <- dir("../../data/metrics/training/", pattern = ".*\\.csv", full.names = TRUE)
+log_dfs <- do.call("rbind", lapply(training_log_files, read_csv))
 ```
 
-# Make plots
+# Look at the data
+
+## Number of autoencoder layers doesn't seem to matter after 1
 
 ```{r}
-df %>% filter(code_size > 2000) %>%
-  ggplot(aes(x=ae_loss, y=disc_loss, color=code_size, alpha=0.05, size=iteration)) +
-  geom_point()
+final_iter <- log_dfs %>% group_by(start_time) %>% summarize(iteration = max(iteration)) %>% left_join(log_dfs)
+final_iter %>% filter(str_detect(output_path, "ae_layers_")) %>%
+  ggplot(aes(x = autoencoder_layers, y = dual_loss)) +
+  geom_line() +
+  labs(x = "Number of Autoencoder Layers", y = "Dual Loss Value")
 ```
 
+## More layers in the discriminator generally means lower final loss
+
 ```{r}
-df %>% mutate(start_time = as.factor(start_time)) %>%
-  filter(iteration == 4999, code_size == 2000) %>%
-  group_by()
-  ggplot(aes(x = discriminator_layers, y = ae_loss)) +
+final_iter %>% filter(str_detect(output_path, "/layers_")) %>%
+  filter(discriminator_layers > 0) %>%
+  ggplot(aes(x = discriminator_layers, y = dual_loss)) +
+  geom_line() +
+  labs(x = "Number of Discriminator Layers", y = "Dual Loss Value")
+```
+
+## The optimal code size seems to be between 1000 and 10,000
+
+```{r}
+final_iter %>% filter(str_detect(output_path, "/code_size")) %>%
+  filter(discriminator_layers > 0) %>%
+  ggplot(aes(x = code_size, y = dual_loss)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth() +
+  labs(x = "Nodes in Code Layer", y = "Dual Loss Value") +
+  scale_x_log10()
 ```
 
 ```{r}
-df %>% filter(iteration == 4999) %>%
-  arrange(dual_loss)
+final_iter %>% filter(str_detect(output_path, "/scaling")) %>%
+  ggplot(aes(x = scaling_method, y = dual_loss)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Scaling Method", y = "Dual Loss Value")
 ```
+
+[1] "../../data/metrics/training//ae_layers.csv"   "../../data/metrics/training//code_size.csv"  
+[3] "../../data/metrics/training//features.csv"    "../../data/metrics/training//layers.csv"     
+[5] "../../data/metrics/training//loss_weight.csv" "../../data/metrics/training//mnist.csv"      
+[7] "../../data/metrics/training//scaling.csv"    
+
 
 ```{r}
 
-run <- df %>% filter(discriminator_layers == 9) 
+run <- log_dfs %>% filter(discriminator_layers == 9) 
 
 run %>%
   # filter(iteration > 4000) %>%

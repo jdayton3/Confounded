@@ -48,6 +48,7 @@ class Confounded(object):
     def _setup_autoencoder(self):
         sqrt = self.input_size ** 0.5
         is_square_image = sqrt == int(sqrt)
+        keep_prob = 0.5
         with tf.variable_scope("autoencoder"):
             self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
             if is_square_image:
@@ -55,18 +56,26 @@ class Confounded(object):
             with tf.name_scope("encoding"):
                 layer = self.inputs
                 n_nodes = 512
+                encoding_layers = [] # Save unactivated for u-net-like connections.
                 for i in range(self.autoencoder_layers):
-                    layer = fully_connected(layer, n_nodes, activation_fn=self.activation)
+                    layer = fully_connected(layer, n_nodes, activation_fn=None)
+                    encoding_layers.append(layer)
+                    layer = self.activation(layer)
                     layer = batch_norm(layer)
+                    layer = tf.nn.dropout(layer, keep_prob)
                     n_nodes = int(ceil(n_nodes / 2))
                 self.code = fully_connected(layer, self.code_size, activation_fn=self.activation)
                 layer = self.code
             with tf.name_scope("decoding"):
-                for i in range(self.autoencoder_layers):
+                encoding_layers = reversed(encoding_layers)
+                for i, skip_layer in enumerate(encoding_layers):
                     n_nodes *= 2
-                    layer = fully_connected(layer, n_nodes, activation_fn=self.activation)
+                    layer = fully_connected(
+                        layer, n_nodes, activation_fn=self.activation) + skip_layer
                     layer = batch_norm(layer)
-                self.outputs = fully_connected(layer, self.input_size, activation_fn=tf.nn.sigmoid)
+                    layer = tf.nn.dropout(layer, keep_prob)
+                self.outputs = fully_connected(
+                    layer, self.input_size, activation_fn=tf.nn.sigmoid)# + self.inputs
             if is_square_image:
                 self.show_image(self.outputs, "outputs")
 

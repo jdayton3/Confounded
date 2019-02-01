@@ -1,0 +1,62 @@
+---
+title: "Boxplots"
+author: "Jonathan Dayton"
+date: "1/2/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) install.packages("pacman"); library(pacman)
+p_load("tidyverse", "stringr", "knitr", "kableExtra")
+theme_set(theme_bw(base_size = 12))
+source("functions.R")
+```
+
+```{r}
+order <- c("Unadjusted", "Scale", "ComBat", "Confounded")
+df <- read_csv("../../data/metrics/accuracies.csv") %>% mutate(adjuster = factor(adjuster, levels = order))
+```
+
+```{r}
+
+df %>% filter(col_type == "batch_col") %>%
+  ggplot(aes(x = model, y = accuracy, fill = model)) +
+  geom_boxplot() +
+  facet_grid(dataset ~ adjuster, scales = "free_y") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank()) +
+  labs(y = "Batch Classification Accuracy")
+
+df %>% filter(col_type == "true_class_col") %>%
+  ggplot(aes(x = model, y = accuracy, fill = model)) +
+  geom_boxplot() +
+  facet_grid(dataset ~ adjuster, scales = "free_y") +
+  labs(y = "True Class Classification Accuracy") +
+  theme_bw(base_size = 12) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank())
+```
+
+# Make the table
+
+```{r}
+for (col in c("batch_col", "true_class_col")) {
+  df %>%
+    mutate(model = str_replace_all(model, "Classifier", "")) %>%
+    group_by(adjuster, model, dataset, col_type) %>%
+    summarize(accuracy = mean(accuracy), baseline = mean(baseline)) %>%
+    filter(col_type == col) %>%
+    select(-col_type) %>%
+    spread(model, accuracy) %>%
+    arrange(dataset, adjuster) %>%
+    select(dataset, adjuster, baseline, everything()) %>%
+    rename(Dataset = dataset, Adjustment = adjuster, Baseline = baseline) %>%
+    kable() %>%
+    kable_styling("striped") %>%
+    collapse_rows(columns = 1:3, valign = "top") %>%
+    print()
+}
+```

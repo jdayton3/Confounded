@@ -102,39 +102,12 @@ ComBat_ignore_nonvariance <- function(matrix_, batch)
   matrix_
 }
 
-sva_ignore_nonvariance <- function(matrix_, batch)
-{
-  #' Run sva and ignore nonvarying features.
-  #'
-  #' sva requires that all features have some variance (and probably assumes
-  #' that all features are normally distributed). Since some features don't
-  #' vary across samples, this function ignores nonvarying features before
-  #' running sva
-  #'
-  #' @param matrix_ The matrix to batch adjust with sva.
-  #' @param batch The per-sample batch assignments. See the sva function for
-  #' more information.
-  #' 
-  #' @return The matrix_ after batch adjustment.
-  #'
-  #' @examples
-  #' sva_ignore_nonvariance(data, c(rep(1, 5000), rep(2, 5000)))
-  variance_mask <- varying_row_mask(matrix_)
-  varying_rows <- remove_nonvarying_rows(matrix_)
-  mod = model.matrix(~as.factor(batch))
-  adjusted <- sva(varying_rows, mod)
-  return(adjusted)
-  matrix_[variance_mask,] <- adjusted
-  matrix_
-}
-
 batch_adjust_tidy <- function(df, adjuster = ComBat_ignore_nonvariance, batch_col = "Batch") {
   categorical <- df %>%
     select_if(~!is.numeric(.) || is.whole(.))
   quantitative <- df %>%
     select_if(~is.numeric(.) && !is.whole(.))
   
-  adjusted <- quantitative %>% t() %>% as.matrix() %>% adjuster(df[[batch_col]]) #%>% t() %>% as.tibble()
-  return(adjusted)
+  adjusted <- quantitative %>% t() %>% as.matrix() %>% adjuster(df[[batch_col]]) %>% t() %>% as.tibble()
   bind_cols(categorical, adjusted)
 }
