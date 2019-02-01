@@ -9,6 +9,10 @@ mkdir -p $log_folder
 
 log_file="${log_folder}mnist.csv"
 
+source activate py36
+python --version
+
+
 python -m src.autoencoder $input_path \
     --output-file $output_path \
     --layers 10 \

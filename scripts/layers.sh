@@ -1,5 +1,5 @@
 input_folder="./data/avery/GSE37199/"
-input_path="${input_folder}tidy.csv"
+input_path="${input_folder}clinical.csv"
 
 output_folder="./data/output/layers/"
 mkdir -p $output_folder
