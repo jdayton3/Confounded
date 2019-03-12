@@ -135,6 +135,7 @@ class Confounded(object):
         self.code = None
         self.outputs = None
         self.targets = None
+        self.logits = None
         self.classification = None
 
         self.d_loss = None
@@ -154,80 +155,62 @@ class Confounded(object):
     def _setup_autoencoder(self):
         self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
         self.outputs, self.ae_loss = variational_autoencoder(self.inputs)
-        # keep_prob = 0.5
-        # with tf.variable_scope("autoencoder"):
-            # self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
-            # if is_square(self.input_size):
-            #     self.show_image(self.inputs, "inputs")
-            # with tf.name_scope("encoding"):
-            #     layer = self.inputs
-            #     n_nodes = 512
-            #     encoding_layers = [] # Save unactivated for u-net-like connections.
-            #     for i in range(self.autoencoder_layers):
-            #         layer = fully_connected(layer, n_nodes, activation_fn=None)
-            #         encoding_layers.append(layer)
-            #         layer = self.activation(layer)
-            #         layer = batch_norm(layer)
-            #         layer = tf.nn.dropout(layer, keep_prob)
-            #         n_nodes = int(ceil(n_nodes / 2))
-            #     self.code = fully_connected(layer, self.code_size, activation_fn=self.activation)
-            #     layer = self.code
-            # with tf.name_scope("decoding"):
-            #     encoding_layers = reversed(encoding_layers)
-            #     for i, skip_layer in enumerate(encoding_layers):
-            #         n_nodes *= 2
-            #         layer = fully_connected(
-            #             layer, n_nodes, activation_fn=self.activation) + skip_layer
-            #         layer = batch_norm(layer)
-            #         layer = tf.nn.dropout(layer, keep_prob)
-            #     self.outputs = fully_connected(
-            #         layer, self.input_size, activation_fn=tf.nn.sigmoid)# + self.inputs
-            # if is_square(self.input_size):
-            #     self.show_image(self.outputs, "outputs")
 
     @var_scope("discriminator")
     def _setup_discriminator(self):
-        keep_prob = 0.5
         self.targets = tf.placeholder(tf.float32, [None, self.num_targets])
-        layer = batch_norm(self.outputs)
+        inputs = batch_norm(self.outputs)
         layer_size = 512
-        for _ in range(self.discriminator_layers):
-            layer = fully_connected(layer, 512, activation_fn=self.activation)
-            layer = tf.nn.dropout(layer, keep_prob)
-            layer = batch_norm(layer)
-            layer_size = int(ceil(layer_size / 2))
-        self.logits = fully_connected(layer, self.num_targets, activation_fn=None)
+        layer_sizes = [int(ceil(layer_size / 2**n)) for n in range(self.discriminator_layers)]
+        penultimate_layer = make_layers(self.outputs, layer_sizes, keep_prob=0.5, do_batch_norm=True)
+        self.logits = fully_connected(penultimate_layer, self.num_targets, activation_fn=None)
         self.classification = tf.nn.sigmoid(self.logits)
 
+    @var_scope("discriminator")
+    @var_scope("optimizer")
+    def _setup_disc_loss(self):
+        xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.targets, logits=self.logits)
+        self.d_loss = tf.reduce_sum(xentropy)
+        tf.summary.scalar("d_loss", self.d_loss)
+        discriminator_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES,
+            "discriminator"
+        )
+        self.d_optimizer = tf.train.AdamOptimizer(
+            learning_rate=0.001,
+            name="discriminator"
+        ).minimize(self.d_loss, var_list=discriminator_vars)
+
+    @var_scope("autoencoder")
+    @var_scope("optimizer")
+    def _setup_ae_loss(self):
+        tf.summary.scalar("ae_loss", self.ae_loss)
+        autoencoder_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES,
+            "autoencoder"
+        )
+        self.ae_optimizer = tf.train.AdamOptimizer(
+            learning_rate=0.001,
+            name="ae"
+        ).minimize(self.ae_loss, var_list=autoencoder_vars)
+
+    @var_scope("autoencoder")
+    @var_scope("optimizer")
+    def _setup_dual_loss(self):
+        autoencoder_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES,
+            "autoencoder"
+        )
+        self.loss = self.ae_loss + (
+            tf.ones_like(self.d_loss) - self.disc_weighting * self.d_loss
+        )
+        tf.summary.scalar("dual_loss", self.loss)
+        self.optimizer = tf.train.AdamOptimizer(
+            learning_rate=0.001,
+            name="dual"
+        ).minimize(self.loss, var_list=autoencoder_vars)
+
     def _setup_loss_functions(self):
-        with tf.name_scope("discriminator"):
-            with tf.name_scope("optimizer"):
-                self.d_loss = tf.losses.mean_squared_error(self.classification, self.targets)
-                xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.targets, logits=self.logits)
-                self.d_loss = tf.reduce_sum(xentropy)
-                tf.summary.scalar("d_loss", self.d_loss)
-                discriminator_vars = tf.get_collection(
-                    tf.GraphKeys.TRAINABLE_VARIABLES,
-                    "discriminator"
-                )
-                self.d_optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.001
-                ).minimize(self.d_loss, var_list=discriminator_vars)
-        with tf.name_scope("autoencoder"):
-            with tf.name_scope("optimizer"):
-                # self.ae_loss = tf.losses.mean_squared_error(self.inputs, self.outputs)
-                tf.summary.scalar("ae_loss", self.ae_loss)
-                self.loss = self.ae_loss + (
-                    tf.ones_like(self.d_loss) - self.disc_weighting * self.d_loss
-                )
-                tf.summary.scalar("dual_loss", self.loss)
-                autoencoder_vars = tf.get_collection(
-                    tf.GraphKeys.TRAINABLE_VARIABLES,
-                    "autoencoder"
-                )
-                self.ae_optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.001
-                ).minimize(self.ae_loss, var_list=autoencoder_vars)
-                self.optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.001
-                ).minimize(self.loss, var_list=autoencoder_vars)
+        self._setup_disc_loss()
+        self._setup_ae_loss()
+        self._setup_dual_loss()
