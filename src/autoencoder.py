@@ -10,23 +10,61 @@ from .load_data import split_features_labels, list_categorical_columns
 from .adjustments import Scaler, SigmoidScaler, split_discrete_continuous
 from .network import Confounded
 
-MINIBATCH_SIZE = 100
-CODE_SIZE = 2000
-ITERATIONS = 1000
-DISCRIMINATOR_LAYERS = 10
-AUTOENCODER_LAYERS = 2
-LOG_FILE = "./data/metrics/log.csv"
-ACTIVATION = tf.nn.relu
-BATCH_COL = "plate"
-EARLY_STOPPING = None
-SCALING = "linear" # or "sigmoid"
-LOSS_WEIGHTING = 1.0
 
-def check_positive(value):
-    ivalue = int(value)
-    if ivalue < 0:
-        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
-    return ivalue
+def parse_arguments():
+    activation = tf.nn.relu
+
+    def positive_int(value):
+        ivalue = int(value)
+        if ivalue < 0:
+            raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+        return ivalue
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'file', metavar='source-file', type=str,
+        help='Path to input file.')
+    parser.add_argument(
+        '-o', "--output-file", type=str,
+        help="Path to output file.")
+    parser.add_argument(
+        "-m", "--minibatch-size", type=positive_int, default=100,
+        help="The size of the mini-batch for training. Must be positive integer.")
+    parser.add_argument(
+        "-l", "--layers", type=positive_int, default=10,
+        help="How many layers deep the discriminator should be. Must be positive integer.")
+    parser.add_argument(
+        "-a", "--ae-layers", type=positive_int, default=2,
+        help="How many layers in each of the encoding and decoding portions of the autoencoder.")
+    parser.add_argument(
+        "-b", "--batch-col", type=str, default="Batch",
+        help="Which column contains the batch to adjust for.")
+    parser.add_argument(
+        "-c", "--code-size", type=positive_int, default=2000,
+        help="How many nodes in the code layer of the autoencoder.")
+    parser.add_argument(
+        "-e", "--early-stopping", type=positive_int, default=None,
+        help="How many iterations without improvement before stopping early. Default: None")
+    parser.add_argument(
+        "-s", "--scaling", choices=["linear", "sigmoid"], default="linear",
+        help="Type of scaling to perform on the input data.")
+    parser.add_argument(
+        "-w", "--loss-weight", type=float, default=1.0,
+        help="Weight applied to the discriminator loss when training the autoencoder.")
+    parser.add_argument(
+        "-f", "--log-file", type=str, default="./data/metrics/log.csv",
+        help="Path to file to log results.")
+    parser.add_argument(
+        "-i", "--iterations", type=positive_int, default=10000,
+        help="Number of iterations of minibatches to run.")
+
+    args = parser.parse_args()
+
+    if not args.output_file:
+        args.output_file = args.file.rstrip(".csv") + "_confounded.csv"
+    args.activation = activation
+
+    return args
 
 def now():
     """Return the current time in iso format"""
@@ -155,7 +193,7 @@ def autoencoder(input_path,
 
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter("log/bladder-figs", sess.graph)
+        writer = tf.summary.FileWriter("log/{}".format(now()), sess.graph)
         tf.global_variables_initializer().run()
 
         logger = SummaryLogger(
@@ -192,7 +230,7 @@ def autoencoder(input_path,
             summary, disc_loss, ae_loss, dual_loss, _, _ = sess.run([
                 merged,
                 c.d_loss,
-                c.mse,
+                c.ae_loss,
                 c.loss,
                 c.outputs,
                 optimizer,
@@ -241,70 +279,21 @@ def autoencoder(input_path,
         )
 
 if __name__ == "__main__":
-    # Setting up argparse to take in arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', metavar='source-file', type=str, nargs=1,
-            help='takes 1 source file for data to be passed in.')
-    parser.add_argument('-o', "--output-file", type=str, nargs=1,
-            help="Location for the output file.")
-    parser.add_argument("-m", "--minibatch-size", type=check_positive, nargs=1,
-            help="The size of the mini-batch for training. Must be positive integer.")
-    parser.add_argument("-l", "--layers", type=check_positive, nargs=1,
-            help="How many layers deep the discriminator should be. Must be positive integer.")
-    parser.add_argument("-a", "--ae-layers", type=check_positive, nargs=1,
-            help="How many layers in each of the encoding and decoding portions of the autoencoder.")
-    parser.add_argument("-b", "--batch-col", type=str, nargs=1,
-            help="Which column contains the batch to adjust for.")
-    parser.add_argument("-c", "--code-size", type=check_positive, nargs=1,
-            help="How many nodes in the code layer of the autoencoder.")
-    parser.add_argument("-e", "--early-stopping", type=check_positive, nargs=1,
-            help="How many iterations without improvement before stopping early. Default: None")
-    parser.add_argument("-s", "--scaling", choices=["linear", "sigmoid"],
-            help="Type of scaling to perform on the input data.")
-    parser.add_argument("-w", "--loss-weight", type=float, nargs=1,
-            help="Weight applied to the discriminator loss when training the autoencoder.")
-    parser.add_argument("-f", "--log-file", type=str, nargs=1,
-            help="Path to file to log results.")
 
-    args = parser.parse_args()
-
-    # Adding user options to code
-    INPUT_PATH = args.file[0]
-    if args.output_file:
-        OUTPUT_PATH = args.output_file[0]
-    else:
-        OUTPUT_PATH = INPUT_PATH.rstrip(".csv") + "_confounded.csv"
-    if args.minibatch_size:
-        MINIBATCH_SIZE = args.minibatch_size[0]
-    if args.layers:
-        DISCRIMINATOR_LAYERS = args.layers[0]
-    if args.ae_layers:
-        AUTOENCODER_LAYERS = args.ae_layers[0]
-    if args.batch_col:
-        BATCH_COL = args.batch_col[0]
-    if args.code_size:
-        CODE_SIZE = args.code_size[0]
-    if args.early_stopping:
-        EARLY_STOPPING = args.early_stopping[0]
-    if args.scaling:
-        SCALING = args.scaling
-    if args.loss_weight:
-        LOSS_WEIGHTING = args.loss_weight[0]
-    if args.log_file:
-        LOG_FILE = args.log_file[0]
+    args = parse_arguments()
 
     autoencoder(
-        INPUT_PATH,
-        OUTPUT_PATH,
-        MINIBATCH_SIZE,
-        CODE_SIZE,
-        ITERATIONS,
-        d_layers=DISCRIMINATOR_LAYERS,
-        ae_layers=AUTOENCODER_LAYERS,
-        activation=ACTIVATION,
-        batch_col=BATCH_COL,
-        early_stopping=EARLY_STOPPING,
-        scaling=SCALING,
-        disc_weighting=LOSS_WEIGHTING,
-        log_file=LOG_FILE
+        args.file,
+        args.output_file,
+        args.minibatch_size,
+        args.code_size,
+        args.iterations,
+        d_layers=args.layers,
+        ae_layers=args.ae_layers,
+        activation=args.activation,
+        batch_col=args.batch_col,
+        early_stopping=args.early_stopping,
+        scaling=args.scaling,
+        disc_weighting=args.loss_weight,
+        log_file=args.log_file
     )
