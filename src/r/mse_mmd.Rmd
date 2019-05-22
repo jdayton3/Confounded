@@ -30,6 +30,7 @@ metrics %>%
   geom_bar(stat = "identity") +
   facet_grid(dataset ~ adjuster, scales = "free_y") +
   labs(y = "MSE", x = "")
+# ggsave("~/Documents/research/thesis/figures/final/mse.pdf")
 
 metrics %>% 
   filter(metric == "MMD") %>%
@@ -37,4 +38,40 @@ metrics %>%
   geom_bar(stat = "identity") +
   facet_grid(dataset ~ adjuster, scales = "free_y") +
   labs(y = "MMD", x = "")
+# ggsave("~/Documents/research/thesis/figures/final/mmd.pdf")
+```
+
+
+```{r}
+metrics_table <- function(metrics, metric_name) {
+  return(
+    metrics %>%
+      mutate(value = formatC(value, format = "g", digits = 3)) %>%
+      spread(adjuster, value) %>%
+      filter(metric == metric_name) %>%
+      select(-metric) %>%
+      rename(Dataset = dataset)
+  )
+}
+
+save_table <- function(table, path) {
+  return(
+    table %>%
+      kable("latex") %>%
+      kable_styling(latex_options = "striped") %>%
+      as.character() %>% 
+      str_split("\n") %>% 
+      unlist() %>%
+      head(-1) %>% tail(-1) %>% paste(collapse = "\n") %>% 
+      cat(file=path, sep="")
+  )
+}
+
+metrics %>% 
+  metrics_table("MSE") %>%
+  save_table("~/Documents/research/thesis/figures/final/mse.tex")
+metrics %>% 
+  metrics_table("MMD") %>%
+  save_table("~/Documents/research/thesis/figures/final/mmd.tex")
+
 ```

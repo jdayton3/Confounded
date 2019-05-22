@@ -8,6 +8,8 @@ import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected, batch_norm # pylint: disable=E0611
 from math import ceil
 
+LEARNING_RATE = 0.0001
+
 def is_square(n):
     sqrt = n**0.5
     return int(sqrt) == sqrt
@@ -74,6 +76,8 @@ def variational_autoencoder(inputs):
     reconstruction_loss = tf.reduce_sum(xentropy)
     latent_loss = kl_divergence(code_gamma, code_mean) #* 0.01 / code_size
     loss = reconstruction_loss + latent_loss
+
+    loss = loss / input_size
 
     return outputs, loss
 
@@ -162,6 +166,7 @@ class Confounded(object):
         inputs = batch_norm(self.outputs)
         layer_size = 512
         layer_sizes = [int(ceil(layer_size / 2**n)) for n in range(self.discriminator_layers)]
+        layer_sizes = [1024, 512, 512, 128]
         penultimate_layer = make_layers(self.outputs, layer_sizes, keep_prob=0.5, do_batch_norm=True)
         self.logits = fully_connected(penultimate_layer, self.num_targets, activation_fn=None)
         self.classification = tf.nn.sigmoid(self.logits)
@@ -170,14 +175,14 @@ class Confounded(object):
     @var_scope("optimizer")
     def _setup_disc_loss(self):
         xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.targets, logits=self.logits)
-        self.d_loss = tf.reduce_sum(xentropy)
+        self.d_loss = tf.reduce_sum(xentropy) / self.num_targets
         tf.summary.scalar("d_loss", self.d_loss)
         discriminator_vars = tf.get_collection(
             tf.GraphKeys.TRAINABLE_VARIABLES,
             "discriminator"
         )
         self.d_optimizer = tf.train.AdamOptimizer(
-            learning_rate=0.001,
+            learning_rate=LEARNING_RATE,
             name="discriminator"
         ).minimize(self.d_loss, var_list=discriminator_vars)
 
@@ -190,7 +195,7 @@ class Confounded(object):
             "autoencoder"
         )
         self.ae_optimizer = tf.train.AdamOptimizer(
-            learning_rate=0.001,
+            learning_rate=LEARNING_RATE,
             name="ae"
         ).minimize(self.ae_loss, var_list=autoencoder_vars)
 
@@ -201,12 +206,10 @@ class Confounded(object):
             tf.GraphKeys.TRAINABLE_VARIABLES,
             "autoencoder"
         )
-        self.loss = self.ae_loss + (
-            tf.ones_like(self.d_loss) - self.disc_weighting * self.d_loss
-        )
+        self.loss = self.ae_loss - self.disc_weighting * self.d_loss
         tf.summary.scalar("dual_loss", self.loss)
         self.optimizer = tf.train.AdamOptimizer(
-            learning_rate=0.001,
+            learning_rate=LEARNING_RATE,
             name="dual"
         ).minimize(self.loss, var_list=autoencoder_vars)
 

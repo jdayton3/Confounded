@@ -54,10 +54,10 @@ if __name__ == "__main__":
     comparisons = cache.get_dataframe(COMPARISONS_PATH)
     LEARNERS = [
         (RandomForestClassifier, {"n_estimators": 10}),
-        # (MLPClassifier, {"hidden_layer_sizes": tuple([5]*10), "max_iter": 1000}),
+        (MLPClassifier, {"hidden_layer_sizes": tuple([5]*10), "max_iter": 1000}),
         (GaussianNB, {}),
-        # (KNeighborsClassifier, {}),
-        # (SVC, {"kernel": "rbf"})
+        (KNeighborsClassifier, {}),
+        (SVC, {"kernel": "rbf"})
     ]
 
     logger = Logger("./data/metrics/accuracies.csv")

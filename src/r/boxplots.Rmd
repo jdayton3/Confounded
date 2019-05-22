@@ -19,6 +19,7 @@ df <- read_csv("../../data/metrics/accuracies.csv") %>% mutate(adjuster = factor
 ```
 
 ```{r}
+df <- df %>% filter(model != "MLPClassifier")
 
 df %>% filter(col_type == "batch_col") %>%
   ggplot(aes(x = model, y = accuracy, fill = model)) +
@@ -28,6 +29,7 @@ df %>% filter(col_type == "batch_col") %>%
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank()) +
   labs(y = "Batch Classification Accuracy")
+ggsave("~/Documents/research/thesis/figures/final/batch_accuracy.pdf")
 
 df %>% filter(col_type == "true_class_col") %>%
   ggplot(aes(x = model, y = accuracy, fill = model)) +
@@ -38,25 +40,38 @@ df %>% filter(col_type == "true_class_col") %>%
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank())
+ggsave("~/Documents/research/thesis/figures/final/true_class_accuracy.pdf")
 ```
 
 # Make the table
 
 ```{r}
 for (col in c("batch_col", "true_class_col")) {
-  df %>%
+  my_table <- df %>%
     mutate(model = str_replace_all(model, "Classifier", "")) %>%
     group_by(adjuster, model, dataset, col_type) %>%
-    summarize(accuracy = mean(accuracy), baseline = mean(baseline)) %>%
+    summarize(accuracy = round(mean(accuracy), 3), baseline = round(mean(baseline), 3)) %>%
     filter(col_type == col) %>%
     select(-col_type) %>%
     spread(model, accuracy) %>%
     arrange(dataset, adjuster) %>%
     select(dataset, adjuster, baseline, everything()) %>%
     rename(Dataset = dataset, Adjustment = adjuster, Baseline = baseline) %>%
-    kable() %>%
-    kable_styling("striped") %>%
-    collapse_rows(columns = 1:3, valign = "top") %>%
-    print()
+    kable("latex") %>%
+    kable_styling(latex_options = "striped") %>%
+    collapse_rows(columns = 1:3, valign = "top")
+  my_table %>% print()
+  # We need to remove the first and last line for it to work in the latex file...
+  filename = paste(c(
+    "~/Documents/research/thesis/figures/final/",
+    str_replace(col, "_col", ""),
+    ".tex"
+  ), collapse = "")
+  my_table %>% 
+    as.character() %>% 
+    str_split("\n") %>% 
+    unlist() %>%
+    head(-1) %>% tail(-1) %>% paste(collapse = "\n") %>% 
+    cat(file=filename, sep="")
 }
 ```

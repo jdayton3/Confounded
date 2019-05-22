@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 if (!require("pacman")) install.packages("pacman"); library(pacman)
-p_load("tidyverse", "gridExtra", "png", "stringr")
+p_load("tidyverse", "gridExtra", "png", "stringr", "magick", "colorspace", "pracma")
 ```
 
 # Load data
@@ -97,3 +97,69 @@ pngs <- lapply(paths, readPNG)
 gl <- lapply(pngs, grid::rasterGrob)
 grid.arrange(grobs=gl, ncol=4)
 ```
+
+```{r}
+dfs <- list(
+  Unadjusted = read_csv("../../data/mnist/unadjusted.csv") %>% select(-Batch, -Sample, -Digit),
+  `Artificial noise` = read_csv("../../data/mnist/noisy.csv") %>% select(-Batch, -Sample, -Digit),
+  Scale = read_csv("../../data/mnist/noisy_scale.csv") %>% select(-Batch, -Sample, -Digit),
+  ComBat = read_csv("../../data/mnist/noisy_combat.csv") %>% select(-Batch, -Sample, -Digit),
+  Confounded = read_csv("../../data/mnist/noisy_confounded.csv") %>% select(-Batch, -Sample, -Digit)
+)
+```
+
+```{r}
+set.seed(0)
+pic_rows <- sort(sample.int(nrow(unadj), 5))
+
+image_from_vector <- function(x) {
+  return(image_read(aperm(array(as.numeric(x), c(28, 28, 1)), c(2, 1, 3))))
+}
+
+big_img <- NULL
+imgs <- list()
+for (name in names(dfs)) {
+  img <- NULL
+  df <- dfs[[name]]
+  for (i in pic_rows) {
+    new_img <- image_from_vector(df[i,])
+    if (is.null(img)) {
+      img <- new_img
+    } else {
+      img <- image_append(c(img, new_img))
+    }
+  }
+  imgs[[i]] <- img
+  if (is.null(big_img)) {
+    big_img <- img
+  } else {
+    big_img <- image_append(c(big_img, img), stack = TRUE)
+  }
+}
+
+label_width <- 65
+text_background <- image_scale(image_read(array(rep(1, 28*label_width), c(28, label_width, 1))), "x100")
+labels <- NULL
+for (name in names(dfs)) {
+  new_label <- image_annotate(text_background, name, gravity = "center", size = 32)
+  if (is.null(labels)) {
+    labels <- new_label
+  } else {
+    labels <- image_append(c(labels, new_label), stack = TRUE)
+  }
+}
+
+big_img <- image_scale(big_img, "500")
+labelled <- image_append(c(labels, big_img))
+
+image_write(labelled, "../../../../research/thesis/figures/final/mnist.png")
+```
+
+
+
+
+
+
+
+
+

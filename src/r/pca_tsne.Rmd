@@ -75,19 +75,27 @@ unadjusted %>% tsne_chart(unadjusted$plate)
 
 
 ```{r}
+set.seed(0)
 unadjusted <- read_csv("../../data/avery/GSE37199/clinical.csv")
 combat <- read_csv("../../data/avery/GSE37199/tidy_combat.csv") %>% rename(plate = Batch)
 combat$centre <- 0
 combat$patient <- 0
 combat$replicate <- 0
 combat$Stage <- 0
-dmresnet <- read_csv("../../data/avery/GSE37199/clinical.csv")
+scaled <- read_csv("../../data/avery/GSE37199/clinical_scale.csv")
 confounded <- read_csv("../../data/avery/GSE37199/clinical_confounded.csv")
+
+titles <- list(
+  unadj = "Unadjusted",
+  scale = "Scale Adjustment",
+  combat = "ComBat",
+  confounded = "Confounded"
+)
 
 dfs <- list(
   mutate(unadjusted, dataset=titles$unadj),
   mutate(combat, dataset=titles$combat),
-  mutate(dmresnet, dataset=titles$dmnet),
+  mutate(scaled, dataset=titles$scale),
   mutate(confounded, dataset=titles$confounded)
 )
 
@@ -119,8 +127,10 @@ combined %>% ggplot(aes(x = PC1, y = PC2, color = Batch)) +
   geom_point() +
   facet_wrap(~dataset, nrow=2) +
   labs(title = "GSE37199 PCA (batch = \"plate\")")
+#ggsave("~/Documents/research/thesis/figures/final/pca.pdf")
 combined %>% ggplot(aes(x = Dim1, y = Dim2, color = Batch)) +
   geom_point() +
   facet_wrap(~dataset, nrow = 2) +
   labs(title = "GSE37199 t-SNE (batch = \"plate\")")
+#ggsave("~/Documents/research/thesis/figures/final/tsne.pdf")
 ```
