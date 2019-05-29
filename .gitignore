@@ -1,5 +1,6 @@
 *data/
 !data/bladderbatch/bladderbatch.csv
+!**/.gitkeep
 *log/
 *.pyc
 objectdb
