@@ -69,9 +69,8 @@ tcga %>% group_by(CancerType) %>% summarize(count=ceiling(sqrt(n()))) %>% arrang
 
 ```{r}
 set.seed(0)
-sample_sqrt(tcga, "CancerType")
-y <- sample_log(tcga, "CancerType")
-x
+sample_sqrt(tcga, group_col = "CancerType", scale = 2) %>% write_csv("../../data/tcga/medium.csv")
+sample_log(tcga, "CancerType") %>% write_csv("../../data/tcga/small.csv")
 ```
 
 ```{r}
