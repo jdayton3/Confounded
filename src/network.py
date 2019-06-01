@@ -47,7 +47,7 @@ def show_before_and_after_images(func):
 
 @var_scope("vae")
 @show_before_and_after_images
-def variational_autoencoder(inputs):
+def variational_autoencoder(inputs, code_size=20):
     """Creates a variational autoencoder based on "Hands-On Machine
     Learning with Scikit-Learn and TensorFlow by Aurélien Géron
     (O’Reilly). Copyright 2017 Aurélien Géron, 978-1-491-96229-9."
@@ -60,7 +60,6 @@ def variational_autoencoder(inputs):
         output {Tensor} -- The output tensor
         loss {Tensor} -- The loss operation
     """
-    code_size = 20
     layer_sizes = [500, 500]
     activations = [tf.nn.elu for _ in layer_sizes]
     input_size = layer_size(inputs)
@@ -158,7 +157,7 @@ class Confounded(object):
     @var_scope("autoencoder")
     def _setup_autoencoder(self):
         self.inputs = tf.placeholder(tf.float32, [None, self.input_size])
-        self.outputs, self.ae_loss = variational_autoencoder(self.inputs)
+        self.outputs, self.ae_loss = variational_autoencoder(self.inputs, code_size=self.code_size)
 
     @var_scope("discriminator")
     def _setup_discriminator(self):

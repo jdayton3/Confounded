@@ -40,7 +40,7 @@ def parse_arguments():
         "-b", "--batch-col", type=str, default="Batch",
         help="Which column contains the batch to adjust for.")
     parser.add_argument(
-        "-c", "--code-size", type=positive_int, default=2000,
+        "-c", "--code-size", type=positive_int, default=20,
         help="How many nodes in the code layer of the autoencoder.")
     parser.add_argument(
         "-e", "--early-stopping", type=positive_int, default=None,
