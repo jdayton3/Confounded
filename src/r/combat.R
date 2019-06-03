@@ -70,7 +70,7 @@ varying_row_mask <- function(matrix_)
   #' varying_row_mask(x)
   #' ## [1]  TRUE FALSE  TRUE
   matrix_ %>%
-    tbl_df() %>%
+    as_tibble() %>%
     mutate_(min = min(names(.)), max = max(names(.))) %>%
     mutate(nonvarying = max != min) %>%
     .$nonvarying
@@ -170,7 +170,7 @@ batch_adjust_tidy <- function(df, adjuster = ComBat_ignore_nonvariance, batch_co
   quantitative <- df %>%
     select_if(~is.numeric(.) && !is.whole(.))
   
-  adjusted <- quantitative %>% as.matrix() %>% adjuster(df[[batch_col]]) %>% as.tibble()
+  adjusted <- quantitative %>% as.matrix() %>% adjuster(df[[batch_col]]) %>% as_tibble()
   bind_cols(categorical, adjusted)
 }
 
@@ -199,7 +199,7 @@ if (!(args$batch_col %in% names(df))) {
 }
 
 message(sprintf("Adjusting using the '%s' adjuster", args$adjuster))
-
+print(df)
 batch_adjust_tidy(
   df, 
   batch_col = args$batch_col, 
