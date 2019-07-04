@@ -24,11 +24,11 @@ This process continues until the discriminator can't distinguish the batches and
 
 ## Quick Start
 
-```bash
-# TODO, see issue #19
-```
+Instructions for getting started quickly with Confounded can be found on [its Docker page](https://hub.docker.com/r/jdayton3/confounded).
 
 ## Installation
+
+The easiest way to install and run Confounded is through [its Docker image](https://hub.docker.com/r/jdayton3/confounded). If you want to install and run the source, continue reading.
 
 TL;DR:
 
