@@ -15,11 +15,13 @@ source("functions.R")
 
 ```{r}
 order <- c("Unadjusted", "Scale", "ComBat", "Confounded")
-df <- read_csv("../../data/metrics/accuracies.csv") %>% mutate(adjuster = factor(adjuster, levels = order))
+df <- read_csv("../../data/metrics/accuracies_sizes.csv") %>% mutate(adjuster = factor(adjuster, levels = order))
 ```
 
 ```{r}
 df <- df %>% filter(model != "MLPClassifier")
+
+df <- df %>% filter(str_detect(dataset, "TCGA"))
 
 df %>% filter(col_type == "batch_col") %>%
   ggplot(aes(x = model, y = accuracy, fill = model)) +
@@ -29,7 +31,7 @@ df %>% filter(col_type == "batch_col") %>%
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank()) +
   labs(y = "Batch Classification Accuracy")
-ggsave("~/Documents/research/thesis/figures/final/batch_accuracy.pdf")
+ggsave("~/Documents/research/thesis/figures/supplement/tcga_batch_accuracy.pdf")
 
 df %>% filter(col_type == "true_class_col") %>%
   ggplot(aes(x = model, y = accuracy, fill = model)) +
@@ -40,12 +42,12 @@ df %>% filter(col_type == "true_class_col") %>%
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank())
-ggsave("~/Documents/research/thesis/figures/final/true_class_accuracy.pdf")
+ggsave("~/Documents/research/thesis/figures/supplement/tcga_true_class_accuracy.pdf")
 ```
 
 # Make the table
 
-```{r}
+```r
 for (col in c("batch_col", "true_class_col")) {
   my_table <- df %>%
     mutate(model = str_replace_all(model, "Classifier", "")) %>%
