@@ -8,3 +8,5 @@ objectdb
 .RData
 .Rhistory
 .vscode/
+*.csv
+scratch.txt
