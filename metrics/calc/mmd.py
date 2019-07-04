@@ -40,9 +40,16 @@ def mmd_multi_batch(batches):
             mmds.append(mmd(batches[i], batches[j]))
     return np.array(mmds).mean()
 
-def calculate_mmd(df, batch_col):
+def calculate_mmd(df, batch_col, log_adjust=False):
     batches = split_into_batches(df, batch_col)
+    if log_adjust:
+        batches = tuple([log_scale(batch) for batch in batches])
     return mmd_multi_batch(batches)
+
+def log_scale(df):
+    # Get rid of negative values
+    df = df.where(df.min() < 0, df - df.min())
+    return np.log(df + 1.0)
 
 class Logger(object):
     def __init__(self, metric):
@@ -86,8 +93,9 @@ if __name__ == "__main__":
     loaded_dfs = {} # path: dataframe
 
     for i, row in dataframes.iterrows():
+        print(row.dataset)
         df = cache.get_dataframe(row["path"])
-        value = calculate_mmd(df, row["batch_col"])
+        value = calculate_mmd(df, row["batch_col"], log_adjust=("TCGA" in row.dataset))
         logger.log(row["adjuster"], row["dataset"], value)
 
     logger.save("./data/metrics/mmd.csv")
