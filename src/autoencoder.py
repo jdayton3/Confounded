@@ -220,8 +220,6 @@ def autoencoder(input_path,
         n_since_improvement = 0
         best_loss = float("inf")
 
-        # sequential_iterations = iterations * 2
-        # for i in range(sequential_iterations):
         for i in range(iterations):
             features, labels = split_features_labels(
                 data,
@@ -229,12 +227,6 @@ def autoencoder(input_path,
                 meta_cols=meta_cols,
                 sample=minibatch_size
             )
-            # if i < iterations / 2:
-            #     optimizer = c.ae_optimizer
-            # elif i < iterations:
-            #     optimizer = c.d_optimizer
-            # else:
-            #     optimizer = c.optimizer
             summary, disc_loss, ae_loss, dual_loss, _, _, _ = sess.run([
                 merged,
                 c.d_loss,
@@ -247,11 +239,6 @@ def autoencoder(input_path,
                 c.inputs: features,
                 c.targets: labels,
             })
-
-            # if i > iterations or should_train_dual(i, sequential_iterations):
-            #     sess.run([c.optimizer, c.d_optimizer], feed_dict={
-            #         c.inputs: features, c.targets: labels
-            #     })
 
             writer.add_summary(summary, i)
             logger.log(i, ae_loss, disc_loss, dual_loss)
