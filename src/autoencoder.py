@@ -57,6 +57,13 @@ def parse_arguments():
     parser.add_argument(
         "-i", "--iterations", type=positive_int, default=10000,
         help="Number of iterations of minibatches to run.")
+    parser.add_argument(
+        "-d", "--save-model", type=str, default="",
+        help="Path to save the model weights. Weights are not saved if path is not specified.")
+    parser.add_argument(
+        "-r", "--load-model", type=str, default="",
+        help="Path to model weights checkpoint to load."
+            " Weights are initialized randomly if path is not specified.")
 
     args = parser.parse_args()
 
