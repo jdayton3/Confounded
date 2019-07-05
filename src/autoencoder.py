@@ -57,6 +57,13 @@ def parse_arguments():
     parser.add_argument(
         "-i", "--iterations", type=positive_int, default=10000,
         help="Number of iterations of minibatches to run.")
+    parser.add_argument(
+        "-d", "--save-model", type=str, default="",
+        help="Path to save the model weights. Weights are not saved if path is not specified.")
+    parser.add_argument(
+        "-r", "--load-model", type=str, default="",
+        help="Path to model weights checkpoint to load."
+            " Weights are initialized randomly if path is not specified.")
 
     args = parser.parse_args()
 
@@ -157,6 +164,8 @@ class SummaryLogger(object):
 
 def autoencoder(input_path,
                 output_path,
+                save_weights_path,
+                load_weights_path,
                 minibatch_size=100,
                 code_size=200,
                 iterations=10000,
@@ -191,10 +200,16 @@ def autoencoder(input_path,
         disc_weghting=disc_weighting
     )
 
+    saver = tf.train.Saver()
+
     with tf.Session() as sess:
+        if load_weights_path:
+            print(f"Model loaded from path: {load_weights_path}")
+            saver.restore(sess, load_weights_path)
+        else:
+            tf.global_variables_initializer().run()
         merged = tf.summary.merge_all()
         writer = tf.summary.FileWriter("log/{}".format(now()), sess.graph)
-        tf.global_variables_initializer().run()
 
         logger = SummaryLogger(
             log_file,
@@ -213,8 +228,6 @@ def autoencoder(input_path,
         n_since_improvement = 0
         best_loss = float("inf")
 
-        # sequential_iterations = iterations * 2
-        # for i in range(sequential_iterations):
         for i in range(iterations):
             features, labels = split_features_labels(
                 data,
@@ -222,12 +235,6 @@ def autoencoder(input_path,
                 meta_cols=meta_cols,
                 sample=minibatch_size
             )
-            # if i < iterations / 2:
-            #     optimizer = c.ae_optimizer
-            # elif i < iterations:
-            #     optimizer = c.d_optimizer
-            # else:
-            #     optimizer = c.optimizer
             summary, disc_loss, ae_loss, dual_loss, _, _, _ = sess.run([
                 merged,
                 c.d_loss,
@@ -240,11 +247,6 @@ def autoencoder(input_path,
                 c.inputs: features,
                 c.targets: labels,
             })
-
-            # if i > iterations or should_train_dual(i, sequential_iterations):
-            #     sess.run([c.optimizer, c.d_optimizer], feed_dict={
-            #         c.inputs: features, c.targets: labels
-            #     })
 
             writer.add_summary(summary, i)
             logger.log(i, ae_loss, disc_loss, dual_loss)
@@ -261,6 +263,9 @@ def autoencoder(input_path,
                 break
 
         logger.save()
+        if save_weights_path:
+            saver.save(sess, save_weights_path)
+            print(f"Model saved in path: {save_weights_path}")
 
         # Run the csv through confounded
         features, labels = split_features_labels(data, batch_col, meta_cols=meta_cols)
@@ -287,6 +292,8 @@ if __name__ == "__main__":
     autoencoder(
         args.file,
         args.output_file,
+        args.save_model,
+        args.load_model,
         args.minibatch_size,
         args.code_size,
         args.iterations,
