@@ -164,6 +164,8 @@ class SummaryLogger(object):
 
 def autoencoder(input_path,
                 output_path,
+                save_weights_path,
+                load_weights_path,
                 minibatch_size=100,
                 code_size=200,
                 iterations=10000,
@@ -198,10 +200,16 @@ def autoencoder(input_path,
         disc_weghting=disc_weighting
     )
 
+    saver = tf.train.Saver()
+
     with tf.Session() as sess:
+        if load_weights_path:
+            print(f"Model loaded from path: {load_weights_path}")
+            saver.restore(sess, load_weights_path)
+        else:
+            tf.global_variables_initializer().run()
         merged = tf.summary.merge_all()
         writer = tf.summary.FileWriter("log/{}".format(now()), sess.graph)
-        tf.global_variables_initializer().run()
 
         logger = SummaryLogger(
             log_file,
@@ -255,6 +263,9 @@ def autoencoder(input_path,
                 break
 
         logger.save()
+        if save_weights_path:
+            saver.save(sess, save_weights_path)
+            print(f"Model saved in path: {save_weights_path}")
 
         # Run the csv through confounded
         features, labels = split_features_labels(data, batch_col, meta_cols=meta_cols)
@@ -281,6 +292,8 @@ if __name__ == "__main__":
     autoencoder(
         args.file,
         args.output_file,
+        args.save_model,
+        args.load_model,
         args.minibatch_size,
         args.code_size,
         args.iterations,
