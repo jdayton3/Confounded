@@ -204,7 +204,7 @@ def autoencoder(input_path,
 
     with tf.Session() as sess:
         if load_weights_path:
-            print(f"Model loaded from path: {load_weights_path}")
+            print("Model loaded from path: {}".format(load_weights_path))
             saver.restore(sess, load_weights_path)
         else:
             tf.global_variables_initializer().run()
@@ -265,7 +265,7 @@ def autoencoder(input_path,
         logger.save()
         if save_weights_path:
             saver.save(sess, save_weights_path)
-            print(f"Model saved in path: {save_weights_path}")
+            print("Model saved in path: {}".format(save_weights_path))
 
         # Run the csv through confounded
         features, labels = split_features_labels(data, batch_col, meta_cols=meta_cols)
