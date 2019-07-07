@@ -167,8 +167,9 @@ class Confounded(object):
         layer_sizes = [int(ceil(layer_size / 2**n)) for n in range(self.discriminator_layers)]
         layer_sizes = [1024, 512, 512, 128]
         penultimate_layer = make_layers(self.outputs, layer_sizes, keep_prob=0.5, do_batch_norm=True)
-        self.logits = fully_connected(penultimate_layer, self.num_targets, activation_fn=None)
-        self.classification = tf.nn.sigmoid(self.logits)
+        with tf.variable_scope("do_not_save"):
+            self.logits = fully_connected(penultimate_layer, self.num_targets, activation_fn=None)
+            self.classification = tf.nn.sigmoid(self.logits)
 
     @var_scope("discriminator")
     @var_scope("optimizer")
