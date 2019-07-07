@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import random
+from tqdm import tqdm
 from . import hide_warnings
 import tensorflow as tf
 import pandas as pd
@@ -232,7 +233,8 @@ def autoencoder(input_path,
         n_since_improvement = 0
         best_loss = float("inf")
 
-        for i in range(iterations):
+        print("Training Confounded")
+        for i in tqdm(range(iterations)):
             features, labels = split_features_labels(
                 data,
                 batch_col,
@@ -271,13 +273,13 @@ def autoencoder(input_path,
             saver.save(sess, save_weights_path)
             print("Model saved in path: {}".format(save_weights_path))
 
-        # Run the csv through confounded
+        print("Adjusting the input data")
         features, labels = split_features_labels(data, batch_col, meta_cols=meta_cols)
         adj, = sess.run([c.outputs], feed_dict={
             c.inputs: features,
             c.targets: labels,
         })
-        # Save adjusted & non-adjusted numbers
+        print("Saving data to {}".format(output_path))
         df_adj = pd.DataFrame(adj, columns=split_discrete_continuous(data)[-1].columns)
         df_adj = scaler.unsquash(df_adj)
         reformat.to_csv(
