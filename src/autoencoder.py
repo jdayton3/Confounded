@@ -200,15 +200,15 @@ def autoencoder(input_path,
         disc_weghting=disc_weighting
     )
 
-    all_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+    all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
     vars_to_replace = [var for var in all_vars if "do_not_save" in var.name]
     vars_to_keep = [var for var in all_vars if var not in vars_to_replace]
     saver = tf.train.Saver(vars_to_keep)
 
     with tf.Session() as sess:
         if load_weights_path:
-            print("Model loaded from path: {}".format(load_weights_path))
             saver.restore(sess, load_weights_path)
+            print("Model loaded from path: {}".format(load_weights_path))
             tf.variables_initializer(vars_to_replace).run()
         else:
             tf.global_variables_initializer().run()
