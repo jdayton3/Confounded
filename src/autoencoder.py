@@ -3,7 +3,9 @@ import argparse
 import datetime
 import random
 from tqdm import tqdm
-from . import hide_warnings
+# Hide warnings before importing tf
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import pandas as pd
 from . import reformat
