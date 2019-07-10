@@ -8,8 +8,6 @@ import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected, batch_norm # pylint: disable=E0611
 from math import ceil
 
-LEARNING_RATE = 0.0001
-
 def is_square(n):
     sqrt = n**0.5
     return int(sqrt) == sqrt
@@ -123,7 +121,8 @@ class Confounded(object):
                  discriminator_layers=2,
                  autoencoder_layers=2,
                  activation=tf.nn.relu,
-                 disc_weghting=1.0):
+                 disc_weghting=1.0,
+                 learning_rate=0.0001):
         self.sess = tf.Session()
 
         self.input_size = input_size
@@ -133,6 +132,7 @@ class Confounded(object):
         self.autoencoder_layers = autoencoder_layers
         self.activation = activation
         self.disc_weighting = disc_weghting
+        self.learning_rate = learning_rate
 
         self.inputs = None
         self.code = None
@@ -182,7 +182,7 @@ class Confounded(object):
             "discriminator"
         )
         self.d_optimizer = tf.train.AdamOptimizer(
-            learning_rate=LEARNING_RATE,
+            learning_rate=self.learning_rate,
             name="discriminator"
         ).minimize(self.d_loss, var_list=discriminator_vars)
 
@@ -195,7 +195,7 @@ class Confounded(object):
             "autoencoder"
         )
         self.ae_optimizer = tf.train.AdamOptimizer(
-            learning_rate=LEARNING_RATE,
+            learning_rate=self.learning_rate,
             name="ae"
         ).minimize(self.ae_loss, var_list=autoencoder_vars)
 
@@ -209,7 +209,7 @@ class Confounded(object):
         self.loss = self.ae_loss - self.disc_weighting * self.d_loss
         tf.summary.scalar("dual_loss", self.loss)
         self.optimizer = tf.train.AdamOptimizer(
-            learning_rate=LEARNING_RATE,
+            learning_rate=self.learning_rate,
             name="dual"
         ).minimize(self.loss, var_list=autoencoder_vars)
 

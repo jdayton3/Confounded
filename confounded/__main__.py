@@ -67,6 +67,9 @@ def parse_arguments():
         "-r", "--load-model", type=str, default="",
         help="Path to model weights checkpoint to load."
             " Weights are initialized randomly if path is not specified.")
+    parser.add_argument(
+        "-g", "--learning-rate", type=float, default="0.0001",
+        help="Global learning rate for all portions of the network.")
 
     args = parser.parse_args()
 
@@ -179,7 +182,8 @@ def autoencoder(input_path,
                 early_stopping=None,
                 scaling="linear",
                 disc_weighting=1.0,
-                log_file="log.csv"):
+                log_file="log.csv",
+                learning_rate=0.0001):
     # Get sizes & meta cols
     print("Loading data")
     data = pd.read_csv(input_path)
@@ -236,7 +240,7 @@ def autoencoder(input_path,
         n_since_improvement = 0
         best_loss = float("inf")
 
-        print("Training Confounded")
+        print("Training Confounded (learning rate={})".format(learning_rate))
         for i in tqdm(range(iterations)):
             features, labels = split_features_labels(
                 data,
@@ -313,5 +317,6 @@ if __name__ == "__main__":
         early_stopping=args.early_stopping,
         scaling=args.scaling,
         disc_weighting=args.loss_weight,
-        log_file=args.log_file
+        log_file=args.log_file,
+        learning_rate=args.learning_rate
     )
