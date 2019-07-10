@@ -56,13 +56,13 @@ pip install tensorflow # or tensorflow-gpu
 To run Confounded, run the following command:
 
 ```bash
-python -m src.autoencoder path/to/input_data.csv
+python -m confounded path/to/input_data.csv
 ```
 
 To see other command line options, run:
 
 ```bash
-python -m src.autoencoder -h
+python -m confounded -h
 ```
 
 ### Data preparation
