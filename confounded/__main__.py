@@ -23,13 +23,15 @@ def parse_arguments():
             raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
         return ivalue
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         'file', metavar='source-file', type=str,
         help='Path to input file.')
     parser.add_argument(
         '-o', "--output-file", type=str,
-        help="Path to output file.")
+        help="Path to output file. (default: `source-file`_confounded.csv)")
     parser.add_argument(
         "-m", "--minibatch-size", type=positive_int, default=100,
         help="The size of the mini-batch for training. Must be positive integer.")
@@ -47,7 +49,7 @@ def parse_arguments():
         help="How many nodes in the code layer of the autoencoder.")
     parser.add_argument(
         "-e", "--early-stopping", type=positive_int, default=None,
-        help="How many iterations without improvement before stopping early. Default: None")
+        help="How many iterations without improvement before stopping early.")
     parser.add_argument(
         "-s", "--scaling", choices=["linear", "sigmoid"], default="linear",
         help="Type of scaling to perform on the input data.")
@@ -61,14 +63,14 @@ def parse_arguments():
         "-i", "--iterations", type=positive_int, default=10000,
         help="Number of iterations of minibatches to run.")
     parser.add_argument(
-        "-d", "--save-model", type=str, default="",
+        "-d", "--save-model", type=str, default=None,
         help="Path to save the model weights. Weights are not saved if path is not specified.")
     parser.add_argument(
-        "-r", "--load-model", type=str, default="",
+        "-r", "--load-model", type=str, default=None,
         help="Path to model weights checkpoint to load."
             " Weights are initialized randomly if path is not specified.")
     parser.add_argument(
-        "-g", "--learning-rate", type=float, default="0.0001",
+        "-g", "--learning-rate", type=float, default=0.0001,
         help="Global learning rate for all portions of the network.")
 
     args = parser.parse_args()
