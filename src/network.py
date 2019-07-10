@@ -62,7 +62,7 @@ def variational_autoencoder(inputs, code_size=20):
     """
     layer_sizes = [500, 500]
     activations = [tf.nn.elu for _ in layer_sizes]
-    input_size = layer_size(inputs)
+    input_size = get_layer_size(inputs)
 
     encoding = make_layers(inputs, layer_sizes, activations)
     code_mean, code_gamma, code = vae_code_layer(encoding, code_size)
@@ -80,7 +80,7 @@ def variational_autoencoder(inputs, code_size=20):
 
     return outputs, loss
 
-def layer_size(layer):
+def get_layer_size(layer):
     dimensions = layer.shape[1:]
     size = 1
     for dimension in dimensions:
@@ -109,7 +109,7 @@ def kl_divergence(gamma, mean):
     return 0.5 * tf.reduce_sum(tf.exp(gamma) + tf.square(mean) - 1 - gamma)
 
 def show_image(x, name="image"):
-    input_size = layer_size(x)
+    input_size = get_layer_size(x)
     if is_square(input_size):
         width_height = int(input_size**0.5)
         img = tf.reshape(x, [-1, width_height, width_height, 1])
