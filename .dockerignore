@@ -1,0 +1,7 @@
+# Ignore big & unnecessary files
+data/
+log/
+.vscode/
+
+# Don't ignore the example data file
+!data/bladderbatch/bladderbatch.csv
