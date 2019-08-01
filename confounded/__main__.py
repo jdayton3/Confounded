@@ -190,7 +190,7 @@ def autoencoder(input_path,
     # Get sizes & meta cols
     print("Loading data")
     data = pd.read_csv(input_path)
-    print(data.columns)
+    print(data.columns.tolist())
     import sys
     sys.exit(1)
 
