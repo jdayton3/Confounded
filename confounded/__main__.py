@@ -190,9 +190,7 @@ def autoencoder(input_path,
     # Get sizes & meta cols
     print("Loading data")
     data = pd.read_csv(input_path)
-    print(data.columns.tolist())
-    import sys
-    sys.exit(1)
+    original_cols = data.columns.tolist()
 
     scaling_options = {
         "linear": Scaler,
@@ -306,7 +304,7 @@ def autoencoder(input_path,
             meta_cols={
                 col: data[col] for col in meta_cols
             },
-            column_order=data.columns
+            column_order=original_cols
         )
 
 if __name__ == "__main__":
