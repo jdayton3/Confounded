@@ -297,7 +297,8 @@ def autoencoder(input_path,
             tidy=True,
             meta_cols={
                 col: data[col] for col in meta_cols
-            }
+            },
+            column_order=data.columns
         )
 
 if __name__ == "__main__":
