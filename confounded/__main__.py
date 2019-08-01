@@ -186,17 +186,24 @@ def autoencoder(input_path,
                 disc_weighting=1.0,
                 log_file="log.csv",
                 learning_rate=0.0001):
+
     # Get sizes & meta cols
     print("Loading data")
     data = pd.read_csv(input_path)
+    print(data.columns)
+    sys.exit(1)
+
     scaling_options = {
         "linear": Scaler,
         "sigmoid": SigmoidScaler
     }
+
     scaler = scaling_options[scaling]()
     data = scaler.squash(data)
+
     meta_cols = list_categorical_columns(data)
     print("Inferred meta columns: {}. These will not be adjusted.".format(meta_cols))
+
     input_size = len(data.columns) - len(meta_cols)
     num_targets = len(data[batch_col].unique())
 
