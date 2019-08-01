@@ -1,6 +1,6 @@
 import pandas as pd
 
-def to_csv(df, path, tidy=False, meta_cols=None):
+def to_csv(df, path, tidy=False, meta_cols=None, column_order=None):
     """Save a dataframe as a CSV, and optionally add meta columns and
         transpose the dataframe.
 
@@ -17,6 +17,10 @@ def to_csv(df, path, tidy=False, meta_cols=None):
     if not tidy:
         df = df.T
     df = _add_meta_cols(df, meta_cols)
+
+    if column_order:
+        df = df[column_order]
+
     df.to_csv(path, index=False)
 
 def _add_meta_cols(df, meta_cols):
