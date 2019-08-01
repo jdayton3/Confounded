@@ -191,6 +191,7 @@ def autoencoder(input_path,
     print("Loading data")
     data = pd.read_csv(input_path)
     print(data.columns)
+    import sys
     sys.exit(1)
 
     scaling_options = {
