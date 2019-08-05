@@ -297,9 +297,6 @@ def autoencoder(input_path,
         print("Saving data to {}".format(output_path))
         df_adj = pd.DataFrame(adj, columns=split_discrete_continuous(data)[-1].columns)
         df_adj = scaler.unsquash(df_adj)
-        print(original_cols[:10])
-        print(meta_cols)
-        print(df_adj.columns[:10])
         reformat.to_csv(
             df_adj,
             output_path,

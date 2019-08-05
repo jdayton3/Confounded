@@ -19,6 +19,8 @@ def to_csv(df, path, tidy=False, meta_cols=None, column_order=None):
     df = _add_meta_cols(df, meta_cols)
 
     if column_order:
+        print(df.columns)
+        print(column_order)
         df = df[column_order]
 
     df.to_csv(path, index=False)
