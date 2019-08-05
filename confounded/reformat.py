@@ -14,14 +14,17 @@ def to_csv(df, path, tidy=False, meta_cols=None, column_order=None):
         meta_cols {dict} -- Dictionary of {column_name: [values, ...]}
             (default: {None})
     """
+    print("got here 1")
     if not tidy:
         df = df.T
     df = _add_meta_cols(df, meta_cols)
+    print("got here 2")
 
     if column_order:
         print(df.columns)
         print(column_order)
         df = df[column_order]
+    print("got here 3")
 
     df.to_csv(path, index=False)
 
