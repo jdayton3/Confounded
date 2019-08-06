@@ -21,7 +21,8 @@ def to_csv(df, path, tidy=False, meta_cols=None, column_order=None):
     if column_order:
         df = df[column_order]
 
-    df.to_csv(path, index=pd.Index.empty)
+    #df.to_csv(path, index=pd.Index.empty)
+    df.to_csv(path, index=None)
 
 def _add_meta_cols(df, meta_cols):
     if meta_cols is None:
