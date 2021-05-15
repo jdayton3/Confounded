@@ -11,7 +11,7 @@ When analyzing data from multiple sources, that bias can mess up the results, so
 
 Most batch adjusters assume that batch effects are linear and that source bias in one variable doesn't affect bias in other variables.
 However, modern analysis tools like machine learning are really good at learning nonlinear relationships, so if even very small nonlinear effects still exist after correction, modern analysis can still be biased by those effects.
-(See the [comparison to other methods](comparison-to-other-methods) for more info.)
+(See the [paper](https://scholarsarchive.byu.edu/etd/7521/) for more info and a brief comparison to other methods.)
 
 Confounded uses deep neural networks to identify and remove both linear *and* nonlinear batch effects.
 
@@ -70,4 +70,4 @@ Additionally, the following specifications must be met:
 - Any other categorical column (integer or string type) represents other "meta data"
 - The rest of the columns are numeric features
 
-For an example of properly formatted data, see `/metrics/classifiers/test_data.csv`.
+For an example of properly formatted data, see [`/data/example/test_data.csv`](/data/example/test_data.csv).
